@@ -1,0 +1,81 @@
+{
+  "type": "internal",
+  "summary": "Allocate the expanded room and device-control milestone and report every optional bundle closure before enforcing budgets.",
+  "milestone": "M1 plus D01/D02/H01",
+  "reason": "Integrated room setup, shared data lifecycle, deeper light/climate/cover controls exceed the original M1-only scope and measured raw ceiling.",
+  "reviewedAllocations": {
+    "standalone": {
+      "target": {
+        "raw": 180000,
+        "gzip": 54000
+      },
+      "hard": {
+        "raw": 225000,
+        "gzip": 68000
+      }
+    },
+    "modularInitial": {
+      "target": {
+        "raw": 128000,
+        "gzip": 38000
+      },
+      "hard": {
+        "raw": 160000,
+        "gzip": 48000
+      }
+    },
+    "eachOptionalWidget": {
+      "target": {
+        "raw": 6000,
+        "gzip": 2000
+      },
+      "hard": {
+        "raw": 10000,
+        "gzip": 4000
+      }
+    },
+    "unchanged": [
+      "editor",
+      "data",
+      "full installed modular ceiling"
+    ]
+  },
+  "measured": {
+    "standalone": {
+      "raw": 203606,
+      "gzip": 56876
+    },
+    "initial": {
+      "raw": 151213,
+      "gzip": 44121
+    },
+    "editorIncremental": {
+      "raw": 39966,
+      "gzip": 10805
+    },
+    "dataIncremental": {
+      "raw": 5139,
+      "gzip": 2221
+    },
+    "colorIncremental": {
+      "raw": 2493,
+      "gzip": 1223
+    },
+    "rangeIncremental": {
+      "raw": 3202,
+      "gzip": 1404
+    },
+    "tiltIncremental": {
+      "raw": 1927,
+      "gzip": 978
+    },
+    "installed": {
+      "raw": 203940,
+      "gzip": 60752
+    }
+  },
+  "targetMissesRemainVisible": true,
+  "packaging": "Includes room setup and implementation plan; source-only documentation links resolve to canonical build-commit URLs.",
+  "verification": "Eight focused build tests, both actual profiles and both verification packages passed; package Markdown local-link closure checked.",
+  "supersededBy": "All bundle size ceilings and targets removed at user request; scripts/bundle-budgets.json is report-only."
+}

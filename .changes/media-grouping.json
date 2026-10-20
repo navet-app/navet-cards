@@ -1,0 +1,16 @@
+{
+  "type": "new",
+  "summary": "Add explicit media-player grouping with reported members, checked join targets and leave-group controls.",
+  "scope": "D03 normalized grouping state, provider validation and optional control widget",
+  "verification": {
+    "provider": "Six focused provider tests passed for feature flags, membership, candidates, exact payloads and current-state validation.",
+    "browser": "All four native-card grouping scenarios passed in the integrated full check: 127 unit/provider, eight release, eight build/manifest and 136 Chromium scenarios (28.2 seconds).",
+    "typecheck": "Passed after central type integration.",
+    "visual": "Inspected /tmp/navet-media-grouping-phone.png at 390px: choices, unavailable state, grouping explanation and Join/Leave buttons fit the native dialog."
+  },
+  "limits": [
+    "Candidates are not a guarantee of cross-integration compatibility; Home Assistant errors are shown.",
+    "No backend speaker grouping, physical-device or companion-app acceptance is claimed.",
+    "No automatic player selection, playback clock or queue management is added."
+  ]
+}

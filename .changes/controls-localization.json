@@ -1,0 +1,15 @@
+{
+  "type": "fixed",
+  "summary": "Localize comfort, remote and grouping controls in English and Swedish and match their surfaces to each card's theme.",
+  "scope": "Q01 controls labels, unknown-state text, native select options and per-card contrast",
+  "verification": {
+    "typecheck": "Passed after widget and dictionary changes.",
+    "browser": "All three locale/theme cases passed across focused Chromium runs, plus four media-group regression cases. The corrected actual per-card light/dark fixtures verify enabled button/select contrast >= 4.5 against the dialog surfaces, legible native option colors and Swedish preview guards with zero service calls.",
+    "visual": "Inspected regenerated 390px dark/light grouping screenshots and Swedish remote/grouping plus comfort/remote theme screenshots. Grouping actions are legible in both card themes; the root media-dialog token fix resolves the light-theme failure."
+  },
+  "limits": [
+    "Reported integration option names remain unchanged; service values are never translated.",
+    "The localization slice covers comfort, remote and grouping widgets, not every editor or earlier advanced control.",
+    "Browser viewport checks do not establish physical-device or companion-app acceptance."
+  ]
+}

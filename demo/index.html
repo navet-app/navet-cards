@@ -11,6 +11,7 @@
     p { color:var(--secondary-text-color); margin:0; line-height:1.5; } .toolbar { display:flex; gap:8px; flex-wrap:wrap; } button,select { background:var(--card-background-color); color:inherit; border:1px solid var(--divider-color); padding:9px 13px; border-radius:100px; font:inherit; cursor:pointer; }
     .grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-auto-rows:minmax(176px,auto); gap:14px; align-items:start; margin-bottom:30px; }
     .grid > * { grid-column:span 4; height:176px; } .grid > :is(navet-switch-card,navet-lock-card,navet-person-card,navet-scene-card,navet-script-card,navet-button-card) { grid-column:span 2; }
+    .grid > navet-chips-card, .grid > navet-sub-controls-card { height:auto; align-self:start; }
     .grid > navet-switch-card[data-size='extra-small'] { height:88px; }
     .section { display:contents; } .built-in { border:1px solid var(--divider-color); border-radius:12px; padding:18px; background:var(--card-background-color); min-height:130px; display:flex; flex-direction:column; gap:8px; }
     #events { min-height:25px; font-size:12px; margin-top:20px; } #editor-panel { max-width:520px; margin-top:24px; padding:24px; background:var(--card-background-color); border-radius:24px; }
@@ -36,6 +37,11 @@
   const state=(id,value,attributes)=>({ entity_id:id,state:value,attributes });
   const states={
     'light.kitchen':state('light.kitchen','on',{ friendly_name:'Kitchen lights',brightness:166,supported_color_modes:['brightness'] }),
+    'update.demo_firmware':state('update.demo_firmware','on',{friendly_name:'Demo firmware',supported_features:5,installed_version:'1.0',latest_version:'1.1',in_progress:false,auto_update:false,release_summary:'Simulated update entity; controls use the demo host.'}),
+    'remote.living_room':state('remote.living_room','on',{friendly_name:'Living room remote',supported_features:4,activity_list:['Watch TV','Listen to music'],current_activity:'Watch TV'}),
+    'humidifier.bedroom':state('humidifier.bedroom','on',{friendly_name:'Bedroom humidifier',supported_features:1,humidity:45,current_humidity:39,min_humidity:30,max_humidity:80,available_modes:['normal','eco'],mode:'normal'}),
+    'calendar.family':state('calendar.family','off',{friendly_name:'Family calendar'}),
+    'water_heater.home':state('water_heater.home','eco',{friendly_name:'Hot water',supported_features:15,temperature:52,current_temperature:49,min_temp:40,max_temp:70,operation_list:['off','eco','electric'],operation_mode:'eco',away_mode:'off'}),
     'switch.coffee':state('switch.coffee','off',{ friendly_name:'Coffee machine' }),
     'sensor.temperature':state('sensor.temperature','21.4',{ friendly_name:'Kitchen temperature',unit_of_measurement:'°C' }),
     'media_player.kitchen':state('media_player.kitchen','playing',{ friendly_name:'Kitchen speaker',media_title:'Morning radio',supported_features:16389,volume_level:.35 }),
@@ -71,7 +77,7 @@
     }
   };
   window.demoHass.callWS=async message=>({response:{[message.target.entity_id]:{forecast:Array.from({length:7},(_,i)=>({datetime:new Date(Date.now()+i*86400000).toISOString(),condition:i%3===0?'sunny':i%3===1?'cloudy':'rainy',temperature:18+i%4,templow:10+i%3}))}}});
-  window.demoHass.callApi=async()=>[Array.from({length:25},(_,i)=>({last_changed:new Date(Date.now()-(24-i)*3600000).toISOString(),state:String([320,360,420,390,280,250,210,390,780,840,690,460,480,710,560,490,410,600,620,590,650,520,490,460,420][i])}))];
+  window.demoHass.callApi=async(method,path)=>path?.startsWith('calendars/')?[{summary:'Simulated family event',start:{dateTime:new Date(Date.now()+3600000).toISOString()},end:{dateTime:new Date(Date.now()+7200000).toISOString()},location:'Demo home'}]:[Array.from({length:25},(_,i)=>({last_changed:new Date(Date.now()-(24-i)*3600000).toISOString(),state:String([320,360,420,390,280,250,210,390,780,840,690,460,480,710,560,490,410,600,620,590,650,520,490,460,420][i])}))];
   window.configs=[
     {type:'custom:navet-light-card',entity:'light.kitchen',tap_action:{action:'toggle'},hold_action:{action:'more-info'}},
     {type:'custom:navet-switch-card',entity:'switch.coffee'},
@@ -127,6 +133,14 @@
     {type:'custom:navet-media-stack-card',name:'Speakers',entities:['media_player.kitchen']},
     {type:'custom:navet-number-card',entity:'input_number.watering'},
     {type:'custom:navet-select-card',entity:'input_select.house'},
+    {type:'custom:navet-chips-card',title:'At a glance',chips:[{id:'temperature',entity:'sensor.temperature',name:'Kitchen'},{id:'weather',entity:'weather.home'},{id:'home',name:'Home',icon:'mdi:home',tap_action:{action:'navigate',navigation_path:'/demo/index.html'}}]},
+    {type:'custom:navet-sub-controls-card',name:'Quick controls',sub_controls:[{entity:'sensor.temperature',name:'Kitchen',control:'state',read_only:true},{entity:'switch.coffee',name:'Coffee',control:'toggle'}]},
+    {type:'custom:navet-composition-card',name:'Reusable composition',definitions:{reading:{config:{type:'custom:navet-sensor-card',entity:'sensor.temperature'}}},cards:[]},
+    {type:'custom:navet-calendar-card',calendar:{entities:['calendar.family']}},
+    {type:'custom:navet-update-card',entity:'update.demo_firmware'},
+    {type:'custom:navet-remote-card',entity:'remote.living_room'},
+    {type:'custom:navet-humidifier-card',entity:'humidifier.bedroom'},
+    {type:'custom:navet-water-heater-card',entity:'water_heater.home'},
     {type:'custom:navet-navigation-card',name:'Rooms',links:[{name:'Kitchen',path:'#kitchen'},{name:'Home',path:'/demo/index.html'}]},
   ];
   window.catalogCards=moreConfigs.map(config=>{const card=document.createElement(config.type.replace('custom:',''));card.setConfig(config);document.querySelector('#catalog').append(card);return card;});

@@ -2,6 +2,9 @@ import { html, nothing, svg } from 'lit';
 import type { CardCommand, CardEntity, CardKind, HistoryPoint } from './core';
 import type { CardConfig } from './config';
 import { icon } from './icons';
+import { readingGlyph } from './reading-glyph';
+export { readingGlyph } from './reading-glyph';
+export { customContentStyles } from './custom-content-styles';
 
 export interface CustomContentContext {
   kind: CardKind;
@@ -24,7 +27,6 @@ export interface CustomContentContext {
 }
 
 /** Custom widgets consume the same normalized entities and command boundary as entity cards. */
-export const readingGlyph = (entity: CardEntity) => ['°C','°F','C','F'].includes(entity.unit) ? 'sensor' : ['W','kW','kWh','Wh'].includes(entity.unit) ? 'energy-now' : entity.unit === '%' ? 'humidity' : 'gauge';
 
 export function customContent(c: CustomContentContext) {
   const { config, entity, members, t } = c;

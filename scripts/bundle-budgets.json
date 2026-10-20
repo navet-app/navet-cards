@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "mode": "report-only",
+  "gzip": {
+    "level": 6
+  },
+  "baseline": {
+    "standalone": {
+      "raw": 139964,
+      "gzip": 39494
+    }
+  }
+}

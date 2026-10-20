@@ -1,0 +1,4 @@
+{
+  "type": "internal",
+  "summary": "Added bounded live media seek, repeat, shuffle and paired power checks with explicit capability discovery and backend fixture limitations."
+}

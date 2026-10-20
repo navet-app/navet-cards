@@ -1,0 +1,4 @@
+{
+  "type": "new",
+  "summary": "Added scoped popups with history, state triggers, timeouts, swipe dismissal, sizing and active fixed or sticky navigation."
+}

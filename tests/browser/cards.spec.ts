@@ -394,7 +394,7 @@ test('cover position supports keyboard changes and broken artwork falls back', a
   ).toBeEnabled();
 });
 
-test('compact media volume popover remains usable with long track titles', async ({ page }) => {
+test('compact media controls dialog remains usable with long track titles', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => {
     const w = window as any;
@@ -419,11 +419,12 @@ test('compact media volume popover remains usable with long track titles', async
     card.style.height = `${rows * 56 + (rows - 1) * 8}px`;
   });
   const media = page.locator('navet-media-card');
-  await media.getByRole('button', { name: 'Volume', exact: true }).press('Enter');
+  await media.getByRole('button', { name: /^(Volume|Controls)$/ }).press('Enter');
   await expect(media.getByRole('slider', { name: 'Volume', exact: true })).toBeVisible();
   await media.getByRole('slider', { name: 'Volume', exact: true }).press('ArrowRight');
   await expect(media.getByRole('slider', { name: 'Volume', exact: true })).toHaveValue('36');
-  await media.getByRole('button', { name: 'Volume', exact: true }).press('Enter');
+  await page.keyboard.press('Escape');
+  await expect(media.getByRole('button', { name: /^(Volume|Controls)$/ })).toBeFocused();
   await expect(media.getByRole('slider', { name: 'Volume', exact: true })).not.toBeVisible();
   await expect(media.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
 });
@@ -540,7 +541,10 @@ test('legacy explicit family heights retain controls when richer capabilities ar
   expect(await page.evaluate(()=>(window as any).calls.at(-1))).toMatchObject({service:'select_source',data:{source:'TV'},target:{entity_id:'media_player.kitchen'}});
   for(const layout of ['compact','row']) {
     await page.evaluate(layout=>{const w=window as any;w.cards[4].setConfig({...w.configs[4],layout,appearance:{theme:'light'}});},layout);
-    if(!await page.locator('navet-media-card').getByRole('combobox',{name:'Source',exact:true}).isVisible()) await page.locator('navet-media-card').locator('summary').click();
+    if(!await page.locator('navet-media-card').getByRole('combobox',{name:'Source',exact:true}).isVisible()) {
+      if(layout === 'row') await page.locator('navet-media-card').locator('summary').click();
+      else await page.locator('navet-media-card').getByRole('button',{name:'Controls',exact:true}).click();
+    }
     expect(await page.locator('navet-media-card').getByRole('combobox',{name:'Source',exact:true}).evaluate(e=>({text:getComputedStyle(e).color,surface:getComputedStyle(e).backgroundColor}))).toEqual({text:'rgb(238, 238, 238)',surface:'rgb(37, 37, 41)'});
   }
 });
