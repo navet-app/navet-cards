@@ -54,6 +54,27 @@ test('fan modal and room options send exact services to the selected owner witho
   await info.attach('phone-fan-options.png',{body:await room.getByRole('dialog').screenshot(),contentType:'image/png'});
 });
 
+test('closing options during an in-flight command restores focus after the opener is enabled', async ({ page }) => {
+  const card = page.locator('#fan-0');
+  const opener = card.getByRole('button',{name:'Fan options',exact:true});
+  await opener.click();
+  await page.evaluate(()=>{
+    const w=window as any, service=w.fanHost.callService;
+    w.fanHost.callService=async(...args:any[])=>{
+      await new Promise<void>(resolve=>{w.finishFanCommand=resolve;});
+      return service(...args);
+    };
+  });
+  await card.getByRole('combobox',{name:'Preset mode',exact:true}).selectOption('Breeze');
+  await expect(opener).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(card.getByRole('dialog')).toHaveCount(0);
+  await expect(opener).toBeDisabled();
+  await page.evaluate(()=>(window as any).finishFanCommand());
+  await expect(opener).toBeEnabled();
+  await expect(opener).toBeFocused();
+});
+
 test('preview and unavailable fan options reject synthetic changes, unknown values stay unselected', async ({ page }) => {
   const card = page.locator('#fan-0');
   await page.evaluate(()=>{const w=window as any;const old=w.fanHost.states['fan.dining'];w.fanHost={...w.fanHost,states:{...w.fanHost.states,'fan.dining':{...old,attributes:{...old.attributes,preset_mode:undefined,oscillating:undefined,direction:undefined}}}};w.fanSync();});

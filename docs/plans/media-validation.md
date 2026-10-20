@@ -26,7 +26,7 @@ The strict-run logs are retained locally at `/tmp/navet-media-live-2026-9-4.log`
 
 Default behavior remains strict: the seek check runs and an unsuccessful service fails the scenario. No generic backend errors are caught or converted to passing results.
 
-An explicit `NAVET_LIVE_SKIP_DEMO_MEDIA_SEEK=1` exception excludes only this audited demo seek case. The exception is restricted to disposable 2026.9.4 and 2024.6.4 sessions and emits this exact capability diagnostic:
+An explicit `NAVET_LIVE_SKIP_DEMO_MEDIA_SEEK=1` exception excludes only this audited demo seek case. The CI matrix explicitly enables it for its two pinned demo versions; default opt-in device runs remain strict. The exception is restricted to disposable 2026.9.4 and 2024.6.4 sessions and emits this exact capability diagnostic:
 
 ```text
 demo advertises SEEK but backend NotImplementedError confirmed on2026.9.4/2024.6.4

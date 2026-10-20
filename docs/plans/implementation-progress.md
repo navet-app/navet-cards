@@ -32,9 +32,9 @@ Bundle size ceilings have been removed at the user's request and will be conside
 
 | Final profile | Raw bytes | Gzip bytes | Runtime files |
 | --- | ---: | ---: | ---: |
-| Standalone | 373,014 | 97,681 | 1 |
-| Modular initial static closure | 196,412 | 57,509 | 9 |
-| Complete modular installation | 374,302 | 107,690 | 20 |
+| Standalone | 373,301 | 97,743 | 1 |
+| Modular initial static closure | 196,699 | 57,568 | 9 |
+| Complete modular installation | 374,589 | 107,749 | 20 |
 | Editor incremental | 98,403 | 24,909 | 2 |
 | Child-card host incremental | 6,407 | 2,643 | 2 |
 | Chips incremental | 5,280 | 2,222 | 1 |
@@ -48,7 +48,7 @@ Controlled same-source comparisons saved 5,119 initial raw bytes by deferring ri
 
 ## Verification and known limits
 
-The final integrated `npm run check` passes TypeScript, **180 unit/provider tests**, **eight release tests**, **eight build/manifest tests**, **167 Chrome browser scenarios**. The browser suite took 36.0 seconds on the development host; this is suite duration, not interaction latency. Real bugs found and fixed include deferred-content reconnect, post-hold extra taps, cancelled sliders, duplicate error announcements and clipped narrow controls, popup preview history changes, native-details traversal ordering, missing child-only state updates, inconsistent light media-dialog tokens and an overlay blocking sequence cancellation.
+The final integrated `npm run check` passes TypeScript, **180 unit/provider tests**, **eight release tests**, **eight build/manifest tests**, **168 Chromium browser scenarios**. The 168-scenario Chromium run took 17.1 seconds on the development host; this is suite duration, not interaction latency. It includes an in-flight-command focus regression. The CI follow-up defers options-dialog focus restoration until its opener is rendered and enabled, and explicitly enables the audited seek exception for the pinned demo matrix. This does not establish real seek acceptance. Real bugs found and fixed include deferred-content reconnect, post-hold extra taps, cancelled sliders, duplicate error announcements and clipped narrow controls, popup preview history changes, native-details traversal ordering, missing child-only state updates, inconsistent light media-dialog tokens and an overlay blocking sequence cancellation.
 
 [Climate/vacuum backend validation](device-options-validation.md) records actual advertised service/state round trips on HA 2026.9.4 and minimum 2024.6.4. Horizontal swing was exercised on 2026.9.4 and explicitly skipped on the minimum. [Media validation](media-validation.md) records repeat, shuffle and paired power round trips on both versions. Both demo backends reject advertised seek with `NotImplementedError`; strict seek validation still fails and the explicit version-limited test exception does not establish seek acceptance.
 

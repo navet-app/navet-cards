@@ -56,8 +56,8 @@ After composition, broader domains, momentary controls, calendar, reusable confi
 
 | Scenario | Raw | Gzip | Runtime files / requests |
 | --- | ---: | ---: | ---: |
-| Standalone | 373,014 | 97,681 | 1 |
-| Modular everyday view | 196,412 | 57,509 | 9 |
+| Standalone | 373,301 | 97,743 | 1 |
+| Modular everyday view | 196,699 | 57,568 | 9 |
 | Editor incremental | 98,403 | 24,909 | 2 |
 | Rich content and stylesheet incremental | 14,894 | 4,498 | 1 |
 | Visible data incremental | 5,277 | 2,448 | 2 |
@@ -67,7 +67,7 @@ After composition, broader domains, momentary controls, calendar, reusable confi
 | Calendar incremental | 14,308 | 5,802 | 2 |
 | HA templates incremental | 4,860 | 2,107 | 1 |
 | Advanced-controls pack incremental | 29,622 | 6,369 | 1 |
-| Full installed modular suite | 374,302 | 107,690 | 20 |
+| Full installed modular suite | 374,589 | 107,749 | 20 |
 
 The expanded scope grows initial, optional and installed costs. The complete dependency closure is reported separately from the installed suite; neither is a CPU or physical-client latency measurement. Child hosting shares one optional helper chunk with the editor, so first-use costs depend on what has already loaded.
 

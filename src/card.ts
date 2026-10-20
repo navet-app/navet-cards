@@ -112,6 +112,7 @@ export class NavetCard extends LitElement {
   private controlModules = new Map<string,Promise<unknown>>();
   private failedControlModules = new Set<string>();
   private advancedOpen?: {type:'range'|'tilt'|'fan'|'climate-options'|'vacuum-options'|'media-options'|'comfort'|'remote'|'update';entity:string;opener?:HTMLElement};
+  private advancedFocus?: HTMLElement;
   private colorOpen = false;
   private rowOpen = false;
   private dataIntersection?: IntersectionObserver;
@@ -259,6 +260,7 @@ export class NavetCard extends LitElement {
   }
   set preview(value: boolean) {
     this.isPreview = !!value;
+    if (this.isPreview) this.advancedFocus = undefined;
     if (this.isPreview) this.cancelGesture();
     if (this.isConnected) this.syncPanel();
     this.requestUpdate();
@@ -280,6 +282,7 @@ export class NavetCard extends LitElement {
     this.releaseData();
     this.photoIndex = 0; this.photoShuffle = false; this.selectedPlayer = '';
     this.advancedOpen = undefined;
+    this.advancedFocus = undefined;
     this.colorOpen = false; this.rowOpen = false;
     this.popup.disconnect();
     this.config = config;
@@ -373,6 +376,7 @@ export class NavetCard extends LitElement {
   }
   disconnectedCallback() {
     this.disposed = true;
+    this.advancedFocus = undefined;
     this.press.detach();this.protection.dispose();this.releaseTemplates();
     document.removeEventListener('visibilitychange',this.templateVisibility);
     this.releaseData();
@@ -600,6 +604,7 @@ export class NavetCard extends LitElement {
   }
   private async openAdvanced(type:'range'|'tilt'|'fan'|'climate-options'|'vacuum-options'|'media-options'|'comfort'|'remote'|'update',entity:CardEntity) {
     if (this.disabled) return;
+    this.advancedFocus = undefined;
     const opening = {type,entity:entity.externalId,opener:(this.renderRoot as ShadowRoot).activeElement as HTMLElement};
     this.advancedOpen = opening;
     this.requestUpdate();
@@ -610,7 +615,16 @@ export class NavetCard extends LitElement {
     const opener = this.advancedOpen?.opener;
     this.advancedOpen = undefined;
     this.renderRoot.querySelector<HTMLDialogElement>('.advanced-dialog')?.close();
-    this.requestUpdate(); opener?.focus();
+    this.advancedFocus = opener;
+    this.requestUpdate();
+  }
+  protected updated() {
+    // A pending command temporarily disables the opener. Restore only after Lit
+    // has removed the modal and rendered the enabled button again.
+    const opener = this.advancedFocus;
+    if (!opener || this.busy) return;
+    this.advancedFocus = undefined;
+    if (!this.disposed && !this.advancedOpen && !this.disabled && opener.isConnected) opener.focus();
   }
   private fanControls(entity: CardEntity) {
     return entity.capabilities.some(cap=>['fan_preset','oscillate','direction'].includes(cap)) ? this.advancedControl('fan',entity) : nothing;
