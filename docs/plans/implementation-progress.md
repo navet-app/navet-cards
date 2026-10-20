@@ -32,12 +32,12 @@ Bundle size ceilings have been removed at the user's request and will be conside
 
 | Final profile | Raw bytes | Gzip bytes | Runtime files |
 | --- | ---: | ---: | ---: |
-| Standalone | 373,301 | 97,743 | 1 |
-| Modular initial static closure | 196,699 | 57,568 | 9 |
-| Complete modular installation | 374,589 | 107,749 | 20 |
-| Editor incremental | 98,403 | 24,909 | 2 |
+| Standalone | 373,482 | 97,798 | 1 |
+| Modular initial static closure | 196,880 | 57,623 | 9 |
+| Complete modular installation | 374,770 | 107,805 | 20 |
+| Editor incremental | 98,403 | 24,910 | 2 |
 | Child-card host incremental | 6,407 | 2,643 | 2 |
-| Chips incremental | 5,280 | 2,222 | 1 |
+| Chips incremental | 5,280 | 2,223 | 1 |
 | Calendar incremental | 14,308 | 5,802 | 2 |
 | HA templates incremental | 4,860 | 2,107 | 1 |
 | Shared advanced controls incremental | 29,622 | 6,369 | 1 |
@@ -48,7 +48,7 @@ Controlled same-source comparisons saved 5,119 initial raw bytes by deferring ri
 
 ## Verification and known limits
 
-The final integrated `npm run check` passes TypeScript, **180 unit/provider tests**, **eight release tests**, **eight build/manifest tests**, **168 Chromium browser scenarios**. The 168-scenario Chromium run took 17.1 seconds on the development host; this is suite duration, not interaction latency. It includes an in-flight-command focus regression. The CI follow-up defers options-dialog focus restoration until its opener is rendered and enabled, and explicitly enables the audited seek exception for the pinned demo matrix. This does not establish real seek acceptance. Both pinned HA CI jobs now pass. The remaining native-select keyboard tests were reproduced in Playwright 1.63.0 on Linux: the committed tests produced the same two focus failures; committing typeahead with Tab before Escape passed all seven affected cases on the unchanged runtime (3.5 seconds), and those seven cases also passed on macOS (3.2 seconds). Enter opens the Linux native select menu, which consumes Escape; the tests now assert dialog removal before focus restoration. Real bugs found and fixed include deferred-content reconnect, post-hold extra taps, cancelled sliders, duplicate error announcements and clipped narrow controls, popup preview history changes, native-details traversal ordering, missing child-only state updates, inconsistent light media-dialog tokens and an overlay blocking sequence cancellation.
+The final integrated `npm run check` passes TypeScript, **181 unit/provider tests**, **eight release tests**, **eight build/manifest tests**, **168 Chromium browser scenarios**. The 168-scenario Chromium run took 17.3 seconds on the development host; this is suite duration, not interaction latency. It includes an in-flight-command focus regression. The CI follow-up defers options-dialog focus restoration until its opener is rendered and enabled, and explicitly enables the audited seek exception for the pinned demo matrix. This does not establish real seek acceptance. Both pinned HA CI jobs now pass. The remaining native-select keyboard tests were reproduced in Playwright 1.63.0 on Linux: the committed tests produced the same two focus failures; committing typeahead with Tab before Escape passed all seven affected cases on the unchanged runtime (3.5 seconds), and those seven cases also passed on macOS (3.2 seconds). Enter opens the Linux native select menu, which consumes Escape; the tests now assert dialog removal before focus restoration. Real bugs found and fixed include deferred-content reconnect, post-hold extra taps, cancelled sliders, duplicate error announcements and clipped narrow controls, popup preview history changes, native-details traversal ordering, missing child-only state updates, inconsistent light media-dialog tokens and an overlay blocking sequence cancellation.
 
 [Climate/vacuum backend validation](device-options-validation.md) records actual advertised service/state round trips on HA 2026.9.4 and minimum 2024.6.4. Horizontal swing was exercised on 2026.9.4 and explicitly skipped on the minimum. [Media validation](media-validation.md) records repeat, shuffle and paired power round trips on both versions. Both demo backends reject advertised seek with `NotImplementedError`; strict seek validation still fails and the explicit version-limited test exception does not establish seek acceptance.
 
@@ -61,6 +61,8 @@ The final integrated `npm run check` passes TypeScript, **180 unit/provider test
 A verification agent accidentally printed disposable localhost test credentials into tool output. No credentials were written into repository reports or test logs; an in-memory exact-match scan checked source/document/report files and the relevant live logs. The test accounts were not rotated or removed.
 
 Household hardware, companion apps, actual HACS install/update/rollback and maintainer release acceptance remain unverified. No release publication is authorized. Commit/push status does not change these acceptance boundaries; candidate identities and evidence scopes above remain authoritative.
+
+The standalone [downloaded CI preview](https://github.com/navet-app/navet-cards/actions/runs/39495831484/artifacts/12297572850) for `79b7b9e` passed runtime-manifest verification and four browser contexts (catalog/composition × 1280/390 px): main editor, theme toggle, room open/Escape close, no horizontal overflow, zero page errors and zero failed requests. Desktop/phone screenshots were inspected. This evidence belongs to that CI artifact; the later condition-diagnostic fix is covered by the full local suite and requires its own remote CI/preview result. Malformed popup and all chip-type conditions now produce field-specific diagnostics without mutating the draft; regression coverage checks invalid leaves, null and malformed groups.
 
 ## Next ready work
 

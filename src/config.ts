@@ -147,6 +147,10 @@ const object = (v: unknown): v is Record<string, unknown> =>
 function fail(message: string): never {
   return configError(message);
 }
+function validateConfigCondition(value: unknown, path: string): void {
+  try { validateCondition(value); }
+  catch (error) { configError(error instanceof Error ? error.message : 'Invalid condition.', path); }
+}
 export const localPath = (v: unknown): v is string => typeof v === 'string' && (/^#[a-z0-9_-]+$/i.test(v) || (v.startsWith('/') && !v.startsWith('//') && !/[\\\r\n]/.test(v)));
 const entityId = (v: unknown): v is string =>
   typeof v === 'string' && /^[a-z_]+\.[a-z0-9_]+$/.test(v);
@@ -236,14 +240,14 @@ function validatePlainConfig(input: unknown, kind: CardKind): CardConfig {
     for (const key of ['title','subtitle']) if (input[key] !== undefined && typeof input[key] !== 'string') fail(`${key} must be text.`);
     if (!Array.isArray(input.chips) || input.chips.length > 24) fail('chips must contain at most 24 items.');
     const ids = new Set<string>();
-    for (const chip of input.chips) {
+    for (const [index, chip] of input.chips.entries()) {
       if (!object(chip) || typeof chip.id !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(chip.id)) fail('chips need a stable ID.');
       if (ids.has(chip.id)) fail('chip IDs must be unique.');
       ids.add(chip.id);
       if (chip.type !== undefined && !['entity','action','separator','spacer'].includes(String(chip.type))) fail('unsupported chip type.');
       if (chip.type === 'separator' || chip.type === 'spacer') {
         if (chip.name !== undefined && typeof chip.name !== 'string') fail('chip name must be text.');
-        if (chip.visible_when !== undefined) validateCondition(chip.visible_when);
+        if (chip.visible_when !== undefined) validateConfigCondition(chip.visible_when, `$.chips[${index}].visible_when`);
         continue;
       }
       if (chip.type === 'entity' && !entityId(chip.entity)) fail('entity chips need an entity.');
@@ -251,7 +255,7 @@ function validatePlainConfig(input: unknown, kind: CardKind): CardConfig {
       if (chip.name !== undefined && typeof chip.name !== 'string') fail('chip name must be text.');
       if (chip.icon !== undefined && (typeof chip.icon !== 'string' || !/^[a-z0-9_-]+:[a-z0-9_-]+$/i.test(chip.icon))) fail('chip icon must use a namespace.');
       if (chip.show_state !== undefined && typeof chip.show_state !== 'boolean') fail('chip show_state must be true or false.');
-      if (chip.visible_when !== undefined) validateCondition(chip.visible_when);
+      if (chip.visible_when !== undefined) validateConfigCondition(chip.visible_when, `$.chips[${index}].visible_when`);
       const actions = ['tap_action','hold_action','double_tap_action'].map((key) => chip[key]);
       for (const action of actions) if (action !== undefined) {
         validateConfig({type:'custom:navet-switch-card',entity:'switch.validation',tap_action:action},'switch');
@@ -336,7 +340,7 @@ function validatePlainConfig(input: unknown, kind: CardKind): CardConfig {
     if (popup.size !== undefined && !['default','wide','fullscreen'].includes(String(popup.size))) fail('popup size must be default, wide or fullscreen.');
     if (popup.timeout !== undefined && (typeof popup.timeout !== 'number' || !Number.isFinite(popup.timeout) || popup.timeout < 0 || popup.timeout > 86400)) fail('popup timeout must be 0–86400 seconds.');
     if (popup.swipe !== undefined && typeof popup.swipe !== 'boolean') fail('popup swipe must be true or false.');
-    if (popup.trigger !== undefined) validateCondition(popup.trigger);
+    if (popup.trigger !== undefined) validateConfigCondition(popup.trigger, '$.popup.trigger');
   }
   if (input.cards !== undefined && (!Array.isArray(input.cards) || !input.cards.every(card => object(card) && typeof card.type === 'string' && !!card.type.trim()))) fail('child cards must be a list of card configurations with a type.');
   if (input.cards_layout !== undefined && !['vertical','horizontal','grid'].includes(String(input.cards_layout))) fail('cards_layout must be vertical, horizontal or grid.');

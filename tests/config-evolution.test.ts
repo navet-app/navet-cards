@@ -32,6 +32,33 @@ test('legacy configs remain unchanged, isolated and retain explicit membership p
   assert.deepEqual(roomEntityIds(host, saved.area, saved.entities), ['light.outside']);
 });
 
+test('invalid popup and every chip condition return field diagnostics without changing the draft', () => {
+  for (const condition of [null, { entity: 'bad', state: 'on' }, { all: [] }]) {
+    const cases = [{ kind: 'room' as const, input: { type: 'custom:navet-room-card', area: 'kitchen', popup: { trigger: condition } }, path: '$.popup.trigger' }];
+    for (const type of ['entity', 'action', 'separator', 'spacer']) {
+      const chip = { id: 'invalid', type, visible_when: condition,
+        ...(type === 'entity' ? { entity: 'sensor.temperature' } : type === 'action' ? { tap_action: { action: 'back' } } : {}) };
+      const input = { type: 'custom:navet-chips-card', chips: [{ id: 'valid', entity: 'sensor.temperature' }, chip] };
+      const before = structuredClone(input);
+      const diagnostics = configDiagnostics(input, 'chips');
+      assert.equal(diagnostics.length, 1);
+      assert.equal(diagnostics[0].path, '$.chips[1].visible_when');
+      assert.equal(diagnostics[0].code, 'invalid_config');
+      assert.throws(() => validateConfig(input, 'chips'), ConfigValidationError);
+      assert.deepEqual(input, before);
+    }
+    for (const {kind, input, path} of cases) {
+      const before = structuredClone(input);
+      const diagnostics = configDiagnostics(input, kind);
+      assert.equal(diagnostics.length, 1);
+      assert.equal(diagnostics[0].path, path);
+      assert.equal(diagnostics[0].code, 'invalid_config');
+      assert.throws(() => validateConfig(input, kind), ConfigValidationError);
+      assert.deepEqual(input, before);
+    }
+  }
+});
+
 test('v2 rooms validate deterministically without mutation, sorting or default insertion', () => {
   const input = room();
   const snapshot = structuredClone(input);
