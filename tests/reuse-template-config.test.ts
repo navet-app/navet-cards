@@ -13,6 +13,18 @@ test('composition scope stays in local config and invalid recipe graphs produce 
  assert.throws(()=>validateConfig({type:'custom:navet-light-card',use:['missing']},'light'),error=>error instanceof ConfigValidationError&&error.diagnostics[0].path==='$.use');
  assert.throws(()=>validateConfig({type:'custom:navet-light-card',definitions:{wrong:{config:{entity:'switch.one'}}},use:['wrong']},'light'));
 });
+test('typed chips interpolate parent variables while child cards keep independent contexts',()=>{
+ const input={type:'custom:navet-chips-card',variables:{entity:'sensor.room',label:'Room',enabled:true},chips:[
+  {id:'reading',type:'entity',entity:'${entity}',name:'${label}',show_state:'${enabled}'},
+  {id:'action',type:'action',name:'Go to ${label}',tap_action:{action:'navigate',navigation_path:'/rooms/${label}'}},
+  {id:'separator',type:'separator',name:'${label}'},{id:'space',type:'spacer',visible_when:{entity:'${entity}',available:true}},
+ ],cards:[{type:'custom:button-card',name:'${childOnly}'},{type:'custom:navet-button-card',variables:{childOnly:'Child'},name:'${childOnly}'}]};
+ const before=structuredClone(input);assert.deepEqual(validateConfig(input,'chips'),before);
+ const output=resolveRecipes(input);
+ assert.deepEqual(output.chips,[{id:'reading',type:'entity',entity:'sensor.room',name:'Room',show_state:true},{id:'action',type:'action',name:'Go to Room',tap_action:{action:'navigate',navigation_path:'/rooms/Room'}},{id:'separator',type:'separator',name:'Room'},{id:'space',type:'spacer',visible_when:{entity:'sensor.room',available:true}}]);
+ assert.deepEqual(output.cards,input.cards);assert.deepEqual(input,before);
+ (output.cards as {name:string}[])[0].name='Changed';assert.deepEqual(input,before);
+});
 test('display template specifications preserve foreign fields and reject invalid fields or variable shapes',()=>{
  const input={type:'custom:navet-sensor-card',entity:'sensor.one',display_templates:{name:{template:'{{ label }}',variables:{label:'Reading'},future:{keep:true}},visible:{template:'{{ true }}'}}};
  assert.deepEqual(validateConfig(input,'sensor'),input);

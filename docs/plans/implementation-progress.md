@@ -32,11 +32,11 @@ Bundle size ceilings have been removed at the user's request and will be conside
 
 | Final profile | Raw bytes | Gzip bytes | Runtime files |
 | --- | ---: | ---: | ---: |
-| Standalone | 373,482 | 97,798 | 1 |
-| Modular initial static closure | 196,880 | 57,623 | 9 |
-| Complete modular installation | 374,770 | 107,805 | 20 |
-| Editor incremental | 98,403 | 24,910 | 2 |
-| Child-card host incremental | 6,407 | 2,643 | 2 |
+| Standalone | 373,509 | 97,814 | 1 |
+| Modular initial static closure | 196,907 | 57,636 | 9 |
+| Complete modular installation | 374,797 | 107,814 | 20 |
+| Editor incremental | 98,403 | 24,907 | 2 |
+| Child-card host incremental | 6,407 | 2,638 | 2 |
 | Chips incremental | 5,280 | 2,223 | 1 |
 | Calendar incremental | 14,308 | 5,802 | 2 |
 | HA templates incremental | 4,860 | 2,107 | 1 |
@@ -48,7 +48,7 @@ Controlled same-source comparisons saved 5,119 initial raw bytes by deferring ri
 
 ## Verification and known limits
 
-The final integrated `npm run check` passes TypeScript, **181 unit/provider tests**, **eight release tests**, **eight build/manifest tests**, **168 Chromium browser scenarios**. The 168-scenario Chromium run took 17.3 seconds on the development host; this is suite duration, not interaction latency. It includes an in-flight-command focus regression. The CI follow-up defers options-dialog focus restoration until its opener is rendered and enabled, and explicitly enables the audited seek exception for the pinned demo matrix. This does not establish real seek acceptance. Both pinned HA CI jobs now pass. The remaining native-select keyboard tests were reproduced in Playwright 1.63.0 on Linux: the committed tests produced the same two focus failures; committing typeahead with Tab before Escape passed all seven affected cases on the unchanged runtime (3.5 seconds), and those seven cases also passed on macOS (3.2 seconds). Enter opens the Linux native select menu, which consumes Escape; the tests now assert dialog removal before focus restoration. Real bugs found and fixed include deferred-content reconnect, post-hold extra taps, cancelled sliders, duplicate error announcements and clipped narrow controls, popup preview history changes, native-details traversal ordering, missing child-only state updates, inconsistent light media-dialog tokens and an overlay blocking sequence cancellation.
+The final integrated `npm run check` passes TypeScript, **182 unit/provider tests**, **eight release tests**, **eight build/manifest tests**, **170 Chromium browser scenarios**. The 170-scenario Chromium run took 18.6 seconds on the development host; this is suite duration, not interaction latency. It includes an in-flight-command focus regression. The CI follow-up defers options-dialog focus restoration until its opener is rendered and enabled, and explicitly enables the audited seek exception for the pinned demo matrix. This does not establish real seek acceptance. Both pinned HA CI jobs now pass. The remaining native-select keyboard tests were reproduced in Playwright 1.63.0 on Linux: the committed tests produced the same two focus failures; committing typeahead with Tab before Escape passed all seven affected cases on the unchanged runtime (3.5 seconds), and those seven cases also passed on macOS (3.2 seconds). Enter opens the Linux native select menu, which consumes Escape; the tests now assert dialog removal before focus restoration. Review regressions additionally verify parent variables inside typed chips without interpolating child-card configuration, and room popup closure/reopening when a visibility template hides then reveals a linked or unlinked room. Real bugs found and fixed include deferred-content reconnect, post-hold extra taps, cancelled sliders, duplicate error announcements and clipped narrow controls, popup preview history changes, native-details traversal ordering, missing child-only state updates, inconsistent light media-dialog tokens and an overlay blocking sequence cancellation.
 
 [Climate/vacuum backend validation](device-options-validation.md) records actual advertised service/state round trips on HA 2026.9.4 and minimum 2024.6.4. Horizontal swing was exercised on 2026.9.4 and explicitly skipped on the minimum. [Media validation](media-validation.md) records repeat, shuffle and paired power round trips on both versions. Both demo backends reject advertised seek with `NotImplementedError`; strict seek validation still fails and the explicit version-limited test exception does not establish seek acceptance.
 

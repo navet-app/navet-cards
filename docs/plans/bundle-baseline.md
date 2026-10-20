@@ -19,7 +19,7 @@ metafiles under `dist/bundle-analysis/`. The frozen initial measurements are in
 | Initial view | 139,964 / 39,494 | 129,181 / 37,365 | 1 / 2 |
 | Open room after view | no added JS | no added JS | 0 added |
 | First edit, cumulative | 139,964 / 39,494 | 140,884 / 41,033 | 1 / 3 cumulative |
-| Editor incremental | 98,403 | 24,910 | 2 |
+| Editor incremental | 98,403 | 24,907 | 2 |
 | Installed suite | 139,964 / 39,494 | 140,884 / 41,033 | 1 / 3 files |
 
 Modular numbers count the entry **and its static dependency closure**, including
@@ -56,18 +56,18 @@ After composition, broader domains, momentary controls, calendar, reusable confi
 
 | Scenario | Raw | Gzip | Runtime files / requests |
 | --- | ---: | ---: | ---: |
-| Standalone | 373,482 | 97,798 | 1 |
-| Modular everyday view | 196,880 | 57,623 | 9 |
-| Editor incremental | 98,403 | 24,910 | 2 |
+| Standalone | 373,509 | 97,814 | 1 |
+| Modular everyday view | 196,907 | 57,636 | 9 |
+| Editor incremental | 98,403 | 24,907 | 2 |
 | Rich content and stylesheet incremental | 14,894 | 4,498 | 1 |
 | Visible data incremental | 5,277 | 2,448 | 2 |
-| Sub-controls incremental | 7,918 | 2,959 | 1 |
+| Sub-controls incremental | 7,918 | 2,961 | 1 |
 | Chips incremental | 5,280 | 2,223 | 1 |
-| Child-card host incremental | 6,407 | 2,643 | 2 |
+| Child-card host incremental | 6,407 | 2,638 | 2 |
 | Calendar incremental | 14,308 | 5,802 | 2 |
 | HA templates incremental | 4,860 | 2,107 | 1 |
 | Advanced-controls pack incremental | 29,622 | 6,369 | 1 |
-| Full installed modular suite | 374,770 | 107,805 | 20 |
+| Full installed modular suite | 374,797 | 107,814 | 20 |
 
 The expanded scope grows initial, optional and installed costs. The complete dependency closure is reported separately from the installed suite; neither is a CPU or physical-client latency measurement. Child hosting shares one optional helper chunk with the editor, so first-use costs depend on what has already loaded.
 

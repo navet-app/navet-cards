@@ -74,9 +74,9 @@ export function resolveRecipes(source:Record<string,unknown>,inherited:RecipeDef
     }
     if(Array.isArray(value))return value.map(item=>interpolate(item));
     if(record(value)){
-      // A nested card owns its own variable context. Child hosts resolve it explicitly.
-      if(!root&&typeof value.type==='string')return value;
-      return Object.fromEntries(Object.entries(value).filter(([key])=>!root||!['use','variables','definitions'].includes(key)).map(([key,item])=>[key,interpolate(item)]));
+      // Only the card's child-card list owns an independent variable context.
+      // Other typed objects, including chips, still use this card's variables.
+      return Object.fromEntries(Object.entries(value).filter(([key])=>!root||!['use','variables','definitions'].includes(key)).map(([key,item])=>[key,root&&key==='cards'?item:interpolate(item)]));
     }
     return value;
   };

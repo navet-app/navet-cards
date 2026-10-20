@@ -10,6 +10,8 @@ Identical connection/template/variables queries share one remote subscription, e
 
 Display fields accept scalar text. Icons require a namespaced icon identifier. Pictures follow the existing HTTP(S) or single-slash local resource URL policy. Colors accept supported hexadecimal, common named and numeric RGB/HSL values while rejecting URLs, CSS declarations and arbitrary expressions. Visibility accepts booleans and conventional explicit true/false scalar representations; ambiguous strings are errors. Text uses normal Lit escaping. Non-ready or invalid outputs fall back to the card's configured presentation and expose a field-local error.
 
+When a room’s visibility becomes false, its popup coordinator and dialog close together, including the hash-linked navigation lifecycle. Hidden rooms suppress trigger/hash reconciliation while retaining the visibility subscription; after becoming visible, Controls can open a fresh modal. Regression scenarios cover both linked and unlinked rooms, continued subscription, Escape dismissal and absence of service calls.
+
 The visual editor preserves unknown card and per-template fields. Incomplete variables JSON remains a local draft, survives unrelated common-field edits, and never replaces the last valid saved variables. Templates remain HA/Jinja source text; they are not evaluated in the browser.
 
 ## Evidence — 2026-10-20

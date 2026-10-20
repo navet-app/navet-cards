@@ -89,7 +89,17 @@ export class NavetCard extends LitElement {
       if(generation!==this.templateGeneration||this.disposed||this.isPreview)return;
       for(const [field,spec]of Object.entries(specs)) {
         const name=field as DisplayTemplateField;
-        const observation=observeDisplayTemplate(host,name,spec,snapshot=>{if(generation!==this.templateGeneration||this.disposed)return;this.templateSnapshots.set(name,snapshot);if(name==='visible')this.toggleAttribute('data-template-hidden',snapshot.status==='ready'&&snapshot.value===false);if(name==='visible'&&snapshot.status==='ready'&&snapshot.value===false){this.press.cancel();this.actionAbort?.abort();}this.requestUpdate();},{visible:!document.hidden});
+        const observation=observeDisplayTemplate(host,name,spec,snapshot=>{
+          if(generation!==this.templateGeneration||this.disposed)return;
+          this.templateSnapshots.set(name,snapshot);
+          if(name==='visible'){
+            const hidden=snapshot.status==='ready'&&snapshot.value===false;
+            this.toggleAttribute('data-template-hidden',hidden);
+            if(hidden){this.press.cancel();this.actionAbort?.abort();void this.closeRoom();}
+            this.syncPanel();
+          }
+          this.requestUpdate();
+        },{visible:!document.hidden});
         this.templateObservers.set(name,observation);
       }
     }catch(error){if(generation===this.templateGeneration){for(const field of Object.keys(specs))this.templateSnapshots.set(field as DisplayTemplateField,{status:'error',stale:false,error:error instanceof Error?error.message:'Could not load templates.'});this.requestUpdate();}}
@@ -178,7 +188,7 @@ export class NavetCard extends LitElement {
     if (this.kind === 'room') this.popup.configure({
       id: this.config?.panel_id, scope: this.config?.popup?.scope,
       timeout: this.config?.popup?.timeout, swipe: this.config?.popup?.swipe,
-      preview: this.isPreview || !this.host,
+      preview: this.isPreview || !this.host || this.templateValue('visible')===false,
       trigger: !!this.config?.popup?.trigger && evaluateCondition(this.config.popup.trigger, this.host?.states ?? {}),
     });
   };

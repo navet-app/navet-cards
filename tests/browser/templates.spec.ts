@@ -27,6 +27,35 @@ test('visibility false remains subscribed and recovers; preview never subscribes
   await page.evaluate(()=>{(window as any).templateListeners.get(0)({result:true});});await expect(page.locator('#template-card-0')).toBeVisible();
   await page.evaluate(()=>{const w=window as any;w.templateCard.remove();w.templateMount({name:{template:'{{ name }}'}},true);});await expect(page.locator('#template-card-0')).toContainText('Fallback name');expect(await page.evaluate(()=>(window as any).templateCalls.length)).toBe(1);expect(await page.evaluate(()=>(window as any).templateEffects)).toEqual([]);
 });
+for(const linked of [false,true])test(`hidden room releases its popup and can reopen after visibility recovery (${linked?'hash-linked':'unlinked'})`,async({page},info)=>{
+  if(linked)await page.setViewportSize({width:390,height:844});
+  await page.evaluate(linked=>{
+    const w=window as any;
+    const card=document.createElement('navet-room-card')as any;card.id='template-room';
+    card.setConfig({type:'custom:navet-room-card',name:'Template room',entities:['light.kitchen_ceiling'],...(linked?{panel_id:'#template-room'}:{}),display_templates:{visible:{template:'{{ room_visible }}'}}});
+    card.hass=w.templateHost;document.querySelector('main')!.prepend(card);
+  },linked);
+  await expect.poll(()=>page.evaluate(()=>(window as any).templateCalls.length)).toBe(1);
+  const card=page.locator('#template-room');
+  await card.getByRole('button',{name:'Controls',exact:true}).click();
+  await expect(card.getByRole('dialog')).toBeVisible();
+  await expect.poll(()=>card.locator('.room-dialog').evaluate((dialog:HTMLDialogElement)=>dialog.matches(':modal'))).toBe(true);
+  await page.evaluate(()=>(window as any).templateListeners.get(0)({result:false}));
+  await expect(card).not.toBeVisible();
+  if(linked)await expect.poll(()=>page.evaluate(()=>location.hash)).not.toBe('#template-room');
+  // Hidden cards must ignore navigation events and retain the visibility stream.
+  await page.evaluate(()=>window.dispatchEvent(new Event('location-changed')));
+  expect(await page.evaluate(()=>(window as any).templateStops)).toEqual([]);
+  await page.evaluate(()=>(window as any).templateListeners.get(0)({result:true}));
+  await expect(card).toBeVisible();
+  await expect(card.getByRole('dialog')).toHaveCount(0);
+  await card.getByRole('button',{name:'Controls',exact:true}).click();
+  await expect(card.getByRole('dialog')).toBeVisible();
+  await expect.poll(()=>card.locator('.room-dialog').evaluate((dialog:HTMLDialogElement)=>dialog.matches(':modal'))).toBe(true);
+  await card.getByRole('dialog').screenshot({path:info.outputPath('reopened-room.png')});
+  await page.keyboard.press('Escape');await expect(card.getByRole('dialog')).toHaveCount(0);
+  expect(await page.evaluate(()=>(window as any).templateEffects)).toEqual([]);
+});
 test('visual template editor preserves invalid variable drafts, opaque fields and common edits on phone',async({page},info)=>{
   await page.setViewportSize({width:390,height:844});
   await page.evaluate(async()=>{await(customElements.get('navet-entity-card')as any).getConfigElement();const editor=document.createElement('navet-templates-editor')as any;editor.id='templates-editor';editor.hass=(window as any).templateHost;editor.config={type:'custom:navet-entity-card',entity:'sensor.kitchen_temperature',future:{preserved:true},display_templates:{name:{template:'{{ label }}',variables:{label:'Kitchen'},future:{nested:true}}}};editor.addEventListener('templates-config-changed',(event:any)=>{(window as any).templateSaved=event.detail.config;editor.config=event.detail.config;});document.querySelector('main')!.prepend(editor);});
