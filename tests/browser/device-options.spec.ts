@@ -29,12 +29,14 @@ test('climate and cleaning option modals submit advertised selections to the own
   await expect(page.locator('#device-4').getByRole('button',{name:'Cleaning options',exact:true})).toHaveCount(0);
   await climate.getByRole('button',{name:'Climate options',exact:true}).click();
   const preset=climate.getByRole('combobox',{name:'Preset mode',exact:true});
-  await expect(preset).toBeEnabled();await preset.focus();await page.keyboard.press('c');await page.keyboard.press('Enter');
+  // Tab commits typeahead without opening the native select popup on Linux.
+  await expect(preset).toBeEnabled();await preset.focus();await page.keyboard.press('c');await page.keyboard.press('Tab');
   await expect(preset).toHaveValue('comfort');
   await climate.getByRole('combobox',{name:'Fan mode',exact:true}).selectOption('high');
   await climate.getByRole('combobox',{name:'Swing mode',exact:true}).selectOption('vertical');
   await climate.getByRole('combobox',{name:'Horizontal swing',exact:true}).selectOption('on');
   await page.keyboard.press('Escape');
+  await expect(climate.getByRole('dialog')).toHaveCount(0);
   await expect(climate.getByRole('button',{name:'Climate options',exact:true})).toBeFocused();
   const vacuum=page.locator('#device-1');
   await vacuum.getByRole('button',{name:'Cleaning options',exact:true}).click();

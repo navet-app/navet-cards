@@ -36,9 +36,11 @@ test('fan modal and room options send exact services to the selected owner witho
   await card.getByRole('combobox',{name:'Oscillation',exact:true}).selectOption('true');
   const direction = card.getByRole('combobox',{name:'Direction',exact:true});
   await expect(direction).toBeEnabled();
-  await direction.focus(); await page.keyboard.press('r'); await page.keyboard.press('Enter');
+  // Enter opens a native select popup on Linux; Tab commits typeahead and leaves it.
+  await direction.focus(); await page.keyboard.press('r'); await page.keyboard.press('Tab');
   await expect(direction).toHaveValue('reverse');
   await page.keyboard.press('Escape');
+  await expect(card.getByRole('dialog')).toHaveCount(0);
   await expect(card.getByRole('button',{name:'Fan options',exact:true})).toBeFocused();
   const room = page.locator('#fan-2'); await room.getByRole('button',{name:'Controls',exact:true}).click();
   const bedroom = room.locator('.room-control').filter({has:page.getByRole('button',{name:/Bedroom fan/})});
