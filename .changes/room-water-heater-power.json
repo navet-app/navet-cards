@@ -1,4 +1,4 @@
 {
-  "type": "fix",
+  "type": "fixed",
   "summary": "Expose advertised water-heater power actions in automatic room controls."
 }
