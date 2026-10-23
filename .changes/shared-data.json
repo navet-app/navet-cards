@@ -1,0 +1,64 @@
+{
+  "package": "H01 shared data coordinator",
+  "scope": "Typed coordinator and compatible weather/history observation adapters; card lifecycle/render wiring owned by integrator",
+  "files": [
+    "src/data/coordinator.ts",
+    "src/providers/card-data.ts",
+    "tests/data-coordinator.test.ts",
+    "tests/card-data.test.ts"
+  ],
+  "exports": [
+    "DataCoordinator",
+    "DataSnapshot<T>",
+    "DataObservation<T>",
+    "observeCardData",
+    "CardDataQuery",
+    "CardDataSnapshot",
+    "CardDataObservation"
+  ],
+  "behavior": {
+    "deduplication": "one in-flight request and refresh timer per host/query",
+    "scope": "explicit options.scope, otherwise HA connection identity, otherwise callService plus query transport identity",
+    "freshnessMs": {
+      "forecast": 1800000,
+      "history": 300000
+    },
+    "states": [
+      "loading",
+      "ready",
+      "empty",
+      "unsupported",
+      "denied",
+      "offline",
+      "error"
+    ],
+    "stale": "snapshot flag preserves prior data through refresh and failure",
+    "visibility": "all hidden observers stop timers and invalidate current generation",
+    "release": "idempotent; final active release stops timers and ignores obsolete completion",
+    "retry": "visible errors retry at 30/60/120/240/300 seconds, bounded by configured refresh interval",
+    "cache": "up to 64 idle snapshots per weakly held host scope; no eviction timers",
+    "legacy": "weatherForecast and energyHistory remain compatible direct request wrappers"
+  },
+  "verification": {
+    "focusedTests": 12,
+    "commands": [
+      "node --import tsx --test tests/data-coordinator.test.ts tests/card-data.test.ts",
+      "npm run typecheck",
+      "git diff --check"
+    ],
+    "result": "passed"
+  },
+  "integration": [
+    "observeCardData(hass, {type: 'forecast' | 'history', entityId}, listener, {visible?, freshnessMs?, refreshMs?, scope?})",
+    "Store observation per card/query; call setVisible for document and intersection visibility",
+    "Release on entity/kind/host replacement and disconnect; preserve observation across equivalent HA state object replacements",
+    "On reconnect or supported-feature changes use refresh({invalidate:true})",
+    "Surface snapshot status and stale flag; never replace denied or failed requests with a misleading empty success"
+  ],
+  "acceptanceLimits": [
+    "Unabortable existing HA transports may finish network work after release; their results are discarded",
+    "No live household, HACS or device acceptance implied"
+  ],
+  "type": "internal",
+  "summary": "Share weather and history requests with visibility controls and explicit data states."
+}

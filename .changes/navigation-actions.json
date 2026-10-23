@@ -1,0 +1,4 @@
+{
+  "type": "new",
+  "summary": "Added visual external URL, back and replace-history actions with safe URL validation and preview protection."
+}

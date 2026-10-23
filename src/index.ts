@@ -1,5 +1,4 @@
 import { NavetCard } from './card';
-import { NavetCardEditor } from './editor';
 import { KINDS, tagFor, domainAllowed, MULTI_KINDS } from './config';
 import type { Hass } from './providers/home-assistant';
 
@@ -18,8 +17,6 @@ declare global {
   }
 }
 
-if (!customElements.get('navet-card-editor'))
-  customElements.define('navet-card-editor', NavetCardEditor);
 window.customCards ??= [];
 for (const kind of KINDS) {
   const tag = tagFor(kind);
@@ -32,12 +29,12 @@ for (const kind of KINDS) {
   if (!window.customCards.some((card) => card.type === tag))
     window.customCards.push({
       type: tag,
-      name: `Navet ${kind[0].toUpperCase() + kind.slice(1)}`,
+      name: `Navet ${({'water-heater':'Water heater','sub-controls':'Sub-controls'} as Record<string,string>)[kind] ?? kind[0].toUpperCase() + kind.slice(1)}`,
       preview: true,
       description: `Configurable ${kind} controls with Navet's compact card design.`,
       documentationURL: 'https://github.com/navet-app/navet-cards#configuration',
       getEntitySuggestion: (_hass, id) =>
-        domainAllowed(kind, id) ? { config: { type: `custom:${tag}`, ...(MULTI_KINDS.includes(kind) ? {entities:[id]} : {entity:id}) } } : null,
+        domainAllowed(kind, id) ? { config: { type: `custom:${tag}`, ...(kind === 'calendar' ? {calendar:{entities:[id]}} : kind === 'sub-controls' ? {sub_controls:[{entity:id}]} : kind === 'chips' ? {chips:[{id:'entity',entity:id}]} : MULTI_KINDS.includes(kind) ? {entities:[id]} : {entity:id}) } } : null,
     });
 }
 console.info(`Navet Cards ${__VERSION__}`);

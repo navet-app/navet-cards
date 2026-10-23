@@ -1,0 +1,21 @@
+{
+  "type": "improved",
+  "summary": "Remove bundle size ceilings and working targets while retaining complete transfer measurements and artifact integrity checks.",
+  "scope": "User-directed report-only bundle policy",
+  "policy": {
+    "schemaVersion": 2,
+    "mode": "report-only",
+    "settings": "Existing bundle-budgets.json filename retained for compatibility; contains only schemaVersion, mode, gzip and historical baseline.",
+    "report": "Schema 2 retains profile files, attribution, hashes, complete dependency scenarios and nine keyed measurements with actual sizes and optional baseline deltas.",
+    "removed": "All hard ceilings, working targets, allocations, headroom, pass/fail flags and size-based build failures.",
+    "preserved": "Gzip level 6, historical standalone baseline, build-version validation and artifact path/hash/dependency integrity guards."
+  },
+  "verification": {
+    "buildTests": "Eight passed, including an intentionally oversized successful build and complete nine-measurement report.",
+    "typecheck": "Passed.",
+    "build": "One production standalone plus modular build passed; standalone 253317 raw / 67053 gzip, modular initial 149833 / 44603, installed 254102 / 73407.",
+    "runtimeUnchanged": "Standalone SHA-256 before and after: a6fd260379262fa9fd29d945ed98b69c9e5fad982bb84b5090bc74745815b109.",
+    "diffCheck": "Passed."
+  },
+  "limits": "Size ceilings may be introduced later; no replacement size gate or hidden warning threshold remains."
+}

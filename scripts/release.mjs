@@ -1,7 +1,8 @@
 import { execFileSync } from 'node:child_process';
-import { appendFileSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { validateArtifactManifest } from './artifact-manifest.mjs';
 import { parsePromotionTag, resolvePromotion } from './release-promotion.mjs';
 
 const exec = (bin, args) => execFileSync(bin, args, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'inherit'] }).trim();
@@ -40,8 +41,30 @@ export function validatePromotion(sourceTag, releaseTag, { installationTested = 
 
 export function validateEvidence(evidence, { tag, sha, repo }) {
   const parsed = parsePromotionTag(tag);
-  if (!parsed || evidence.schema !== 1 || evidence.repository !== repo || evidence.tag !== tag || evidence.commit !== sha || evidence.version !== (parsed.channel === 'dev' ? `${parsed.base}-dev.${parsed.sequence}` : tag.slice(1)) || !Number.isSafeInteger(evidence.runId) || evidence.runId <= 0 || !/^[a-f0-9]{64}$/.test(evidence.sha256 ?? '')) throw new Error('Invalid publication evidence');
+  if (!parsed || ![1, 2].includes(evidence.schema) || evidence.repository !== repo || evidence.tag !== tag || evidence.commit !== sha || evidence.version !== (parsed.channel === 'dev' ? `${parsed.base}-dev.${parsed.sequence}` : tag.slice(1)) || !Number.isSafeInteger(evidence.runId) || evidence.runId <= 0 || !/^[a-f0-9]{64}$/.test(evidence.sha256 ?? '')) throw new Error('Invalid publication evidence');
+  if (evidence.schema === 2 && (evidence.profile !== 'standalone' || evidence.artifactManifest?.name !== 'artifact-manifest.json' || !/^[a-f0-9]{64}$/.test(evidence.artifactManifest?.sha256 ?? '') || !Array.isArray(evidence.assets) || evidence.assets.length !== 1 || evidence.assets[0]?.name !== 'navet-cards.js' || evidence.assets[0]?.sha256 !== evidence.sha256 || !Number.isSafeInteger(evidence.assets[0]?.bytes) || evidence.assets[0].bytes <= 0)) throw new Error('Invalid artifact publication evidence');
   if (parsed.channel === 'stable' && evidence.installationTested !== true) throw new Error('Missing installation acceptance');
+}
+
+/** Bind downloaded bytes to evidence, retaining schema-1 promotion compatibility. */
+export function validatePublicationAssets(evidence, resource, manifestBytes) {
+  if (sha256(resource) !== evidence.sha256 || !resource.toString().startsWith(`/* Navet Cards ${evidence.version} |`)) throw new Error('Published resource failed checksum/version verification');
+  if (evidence.schema === 1) return;
+  if (!manifestBytes || sha256(manifestBytes) !== evidence.artifactManifest.sha256) throw new Error('Published manifest failed checksum verification');
+  const manifest = JSON.parse(manifestBytes);
+  const asset = evidence.assets[0];
+  if (manifest.schemaVersion !== 1 || manifest.profile !== 'standalone' || manifest.version !== evidence.version || manifest.entry !== 'navet-cards.js' || !Array.isArray(manifest.files) || manifest.files.length !== 1 || manifest.files[0].path !== asset.name || manifest.files[0].sha256 !== asset.sha256 || manifest.files[0].bytes !== asset.bytes || resource.length !== asset.bytes || !Array.isArray(manifest.files[0].imports) || manifest.files[0].imports.length) throw new Error('Published manifest differs from evidence');
+}
+
+export function legacyPublicationRecovery(release, evidence) {
+  if (!release || release.draft || release.assets.some(asset => asset.name === 'artifact-manifest.json')) return false;
+  if (evidence?.schema !== 1) throw new Error('Published release lacks its evidenced artifact manifest');
+  return true;
+}
+export function validatePublicationArchive(path, evidence) {
+  const resource = execFileSync('unzip', ['-p', path, 'navet-cards.js']);
+  const manifest = evidence.schema === 2 ? execFileSync('unzip', ['-p', path, 'artifact-manifest.json']) : undefined;
+  validatePublicationAssets(evidence, resource, manifest);
 }
 
 function verifySource(release) {
@@ -56,6 +79,12 @@ function verifySource(release) {
   if (run.conclusion !== 'success' || !['.github/workflows/release.yml', '.github/workflows/dev-release.yml'].includes(run.path) || run.head_branch !== 'main') throw new Error('Source publication has not completed successfully from main');
   // GitHub supplies a SHA-256 digest for uploaded release assets.
   if (resource.digest !== `sha256:${evidence.sha256}`) throw new Error('Published resource digest differs from evidence');
+  if (evidence.schema === 2) {
+    const manifestAsset = release.assets.find(a => a.name === evidence.artifactManifest.name);
+    if (!manifestAsset || manifestAsset.digest !== `sha256:${evidence.artifactManifest.sha256}`) throw new Error('Source lacks the evidenced artifact manifest');
+    const download = id => execFileSync('gh', ['api', '-H', 'Accept: application/octet-stream', `repos/${repository()}/releases/assets/${id}`], { stdio: ['pipe', 'pipe', 'inherit'] });
+    validatePublicationAssets(evidence, download(resource.id), download(manifestAsset.id));
+  }
   return { tag, sha };
 }
 
@@ -117,14 +146,27 @@ async function main(command) {
     const resource = readFileSync('dist/navet-cards.js');
     if (!resource.toString().startsWith(`/* Navet Cards ${version} |`)) throw new Error('Versioned build required');
     const digest = sha256(resource);
-    const evidence = { schema: 1, repository: repository(), tag: releaseTag, sourceTag, commit: sha, version, sha256: digest, runId: Number(process.env.GITHUB_RUN_ID), installationTested };
-    validateEvidence(evidence, { tag: releaseTag, sha, repo: repository() });
-    writeFileSync('dist/navet-cards-release-evidence.json', JSON.stringify(evidence, null, 2) + '\n');
+    if (build.sha256 !== digest) throw new Error('Verification build differs from resource');
     const current = releases().find(r => r.tag_name === releaseTag);
+    // A published schema-1 release can recover its original byte-identical payloads.
+    const existingEvidenceAsset = current?.assets.find(a => a.name === 'navet-cards-release-evidence.json');
+    const existingEvidence = current && !current.draft && existingEvidenceAsset ? JSON.parse(gh('api', '-H', 'Accept: application/octet-stream', `repos/${repository()}/releases/assets/${existingEvidenceAsset.id}`)) : undefined;
+    const legacyRecovery = legacyPublicationRecovery(current, existingEvidence);
+    const artifactManifestBytes = legacyRecovery ? undefined : readFileSync(`dist/verification-${version}/artifact-manifest.json`);
+    const artifactManifest = artifactManifestBytes ? JSON.parse(artifactManifestBytes) : undefined;
+    if (!legacyRecovery) {
+      await validateArtifactManifest('dist', artifactManifest, { version });
+      if (artifactManifest.profile !== 'standalone') throw new Error('Default publication requires standalone artifacts');
+    }
+    const evidence = { schema: legacyRecovery ? 1 : 2, repository: repository(), tag: releaseTag, sourceTag, commit: sha, version, sha256: digest, runId: Number(process.env.GITHUB_RUN_ID), installationTested };
+    if (!legacyRecovery) Object.assign(evidence, { profile: 'standalone', artifactManifest: { name: 'artifact-manifest.json', sha256: sha256(artifactManifestBytes) }, assets: artifactManifest.files.map(file => ({ name: file.path, bytes: file.bytes, sha256: file.sha256 })) });
+    validateEvidence(evidence, { tag: releaseTag, sha, repo: repository() });
+    validatePublicationArchive(`dist/navet-cards-${version}.zip`, evidence);
+    writeFileSync('dist/navet-cards-release-evidence.json', JSON.stringify(evidence, null, 2) + '\n');
     if (!current) gh('release', 'create', releaseTag, '--repo', repository(), '--verify-tag', '--draft', '--title', releaseTag, '--notes-file', 'dist/release-notes.md');
     const existing = current?.assets || [];
     // Never overwrite versioned payloads. Recovery requires byte-for-byte identity.
-    const assets = ['dist/navet-cards.js', `dist/navet-cards-${version}.zip`, `dist/verification-${version}/SHA256SUMS`, `dist/verification-${version}/build.json`];
+    const assets = ['dist/navet-cards.js', `dist/navet-cards-${version}.zip`, `dist/verification-${version}/SHA256SUMS`, `dist/verification-${version}/build.json`, ...(!legacyRecovery ? [`dist/verification-${version}/artifact-manifest.json`] : [])];
     for (const file of assets) {
       const name = file.split('/').at(-1), remote = existing.find(a => a.name === name);
       if (remote) {
@@ -135,9 +177,15 @@ async function main(command) {
       }
     }
     // Download and inspect the actual published resource before making it installable.
+    rmSync('dist/published', { recursive: true, force: true });
     mkdirSync('dist/published', { recursive: true });
     gh('release', 'download', releaseTag, '--repo', repository(), '--pattern', 'navet-cards.js', '--dir', 'dist/published', '--clobber');
-    if (sha256(readFileSync('dist/published/navet-cards.js')) !== digest) throw new Error('Published resource failed checksum verification');
+    if (!legacyRecovery) gh('release', 'download', releaseTag, '--repo', repository(), '--pattern', 'artifact-manifest.json', '--dir', 'dist/published', '--clobber');
+    validatePublicationAssets(evidence, readFileSync('dist/published/navet-cards.js'), !legacyRecovery ? readFileSync('dist/published/artifact-manifest.json') : undefined);
+    if (!legacyRecovery) await validateArtifactManifest('dist/published', JSON.parse(readFileSync('dist/published/artifact-manifest.json')), { version, strict: true });
+    gh('release', 'download', releaseTag, '--repo', repository(), '--pattern', `navet-cards-${version}.zip`, '--dir', 'dist/published', '--clobber');
+    if (sha256(readFileSync(`dist/published/navet-cards-${version}.zip`)) !== sha256(readFileSync(`dist/navet-cards-${version}.zip`))) throw new Error('Published archive checksum mismatch');
+    validatePublicationArchive(`dist/published/navet-cards-${version}.zip`, evidence);
     // Completion metadata may be refreshed on recovery; payloads remain immutable.
     gh('release', 'upload', releaseTag, 'dist/navet-cards-release-evidence.json', '--repo', repository(), '--clobber');
     const prerelease = parsePromotionTag(releaseTag).channel !== 'stable';

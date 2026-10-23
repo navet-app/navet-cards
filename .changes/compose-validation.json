@@ -1,0 +1,4 @@
+{
+  "type": "internal",
+  "summary": "Added Docker Compose management for the saved Home Assistant card validation environment."
+}

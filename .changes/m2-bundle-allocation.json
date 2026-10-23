@@ -1,0 +1,103 @@
+{
+  "type": "internal",
+  "summary": "Allocate broader composition and device options after measuring lazy styles and shared advanced-control transport savings.",
+  "milestone": "M2 composition and device options",
+  "reason": "Supported C01 composition renderer/editor and additional D02/D03 device options extend beyond the prior M1 plus D01/D02/H01 scope. The rebase is a breadth allocation, not an optimization claim.",
+  "previousPolicyFailure": {
+    "ceilings": {
+      "standalone": {
+        "raw": 225000,
+        "gzip": 68000
+      },
+      "installed": {
+        "raw": 225000,
+        "gzip": 68000
+      }
+    },
+    "actualAfterOptimizations": {
+      "standalone": {
+        "raw": 234017,
+        "gzip": 63577
+      },
+      "installed": {
+        "raw": 234581,
+        "gzip": 68682
+      }
+    },
+    "excess": {
+      "standaloneRaw": 9017,
+      "installedRaw": 9581,
+      "installedGzip": 682
+    }
+  },
+  "suiteAllocation": {
+    "target": {
+      "raw": 224000,
+      "gzip": 67200
+    },
+    "hard": {
+      "raw": 280000,
+      "gzip": 84000
+    }
+  },
+  "preservedLimits": [
+    "initial target128000/38000, hard160000/48000",
+    "editor target60000/18000, hard75000/23000",
+    "data target10000/4000, hard15000/6000"
+  ],
+  "measuredOptimizationEvidence": {
+    "richRendererInitialSaving": {
+      "raw": 5119,
+      "gzip": 1647
+    },
+    "richStylesInitialSaving": {
+      "raw": 9260,
+      "gzip": 1729
+    },
+    "groupedControlsInstalledSaving": {
+      "raw": 869,
+      "gzip": 3493
+    },
+    "runtimeFiles": {
+      "before": 16,
+      "after": 11
+    },
+    "comparisonMethod": "Controlled write:false builds on identical captured inputs; final source growth is tracked separately."
+  },
+  "verification": {
+    "buildTests": 8,
+    "lazyBrowserCases": 4,
+    "styleVariants": 16,
+    "computedStyleEntries": 6288,
+    "computedDifferences": 0,
+    "identicalScreenshotPairs": 16,
+    "fallbackStyles": {
+      "result": "passed",
+      "richCards": 6,
+      "computedDifferences": 0
+    }
+  },
+  "acceptanceLimits": [
+    "local simulation only",
+    "no HACS or household acceptance",
+    "no release published"
+  ],
+  "firstM2Build": {
+    "standalone": {
+      "raw": 234017,
+      "gzip": 63577
+    },
+    "initial": {
+      "raw": 145594,
+      "gzip": 43608
+    },
+    "installed": {
+      "raw": 234581,
+      "gzip": 68682
+    },
+    "allocationChecks": 8,
+    "result": "all hard allocations passed; working-target misses remain visible",
+    "scope": "First C01/climate-vacuum slice, before the later Chips/media batch; current metrics are in docs/plans/implementation-progress.md."
+  },
+  "supersededBy": "All bundle size ceilings and targets removed at user request; scripts/bundle-budgets.json is report-only."
+}

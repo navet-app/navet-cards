@@ -1,0 +1,1 @@
+{"type":"fixed","summary":"Return field-specific diagnostics for malformed popup triggers and chip visibility conditions instead of throwing unstructured errors."}

@@ -1,0 +1,86 @@
+{
+  "type": "internal",
+  "summary": "Verify supported color, effect, thermostat range and cover tilt commands against isolated Home Assistant demo backends.",
+  "scope": "Q03 bounded backend service and normalized read-back checks",
+  "backend2026_9_1": {
+    "result": "passed",
+    "port": 18129,
+    "exercised": [
+      {
+        "capability": "color",
+        "entityId": "light.bed_light",
+        "value": {
+          "hue": 60,
+          "saturation": 75
+        }
+      },
+      {
+        "capability": "effect",
+        "entityId": "light.bed_light",
+        "value": "rainbow"
+      },
+      {
+        "capability": "temperature_range",
+        "entityId": "climate.ecobee",
+        "value": {
+          "low": 16.5,
+          "high": 25.5
+        }
+      },
+      {
+        "capability": "tilt",
+        "entityId": "cover.living_room_window",
+        "value": 60
+      }
+    ],
+    "skipped": []
+  },
+  "backend2024_6_4": {
+    "result": "passed",
+    "port": 18125,
+    "officialImageDigest": "sha256:17d159928122e6f374bd39b0e75904522bc7d7c2a64e88b248948734e4c4d444",
+    "exercised": [
+      {
+        "capability": "color",
+        "entityId": "light.bed_light",
+        "value": {
+          "hue": 240,
+          "saturation": 75
+        }
+      },
+      {
+        "capability": "effect",
+        "entityId": "light.bed_light",
+        "value": "none"
+      },
+      {
+        "capability": "temperature_range",
+        "entityId": "climate.ecobee",
+        "value": {
+          "low": 16,
+          "high": 25.5
+        }
+      },
+      {
+        "capability": "tilt",
+        "entityId": "cover.living_room_window",
+        "value": 40
+      }
+    ],
+    "skipped": []
+  },
+  "historicalSession": "Preserved without overwrite at .ha-validation/archive/2024.6.4-before-20261020 after verifying the dedicated container was absent.",
+  "unitTests": {
+    "count": 10,
+    "result": "passed"
+  },
+  "acceptanceLimits": [
+    "isolated demo entities only",
+    "no physical hardware or household claim",
+    "no all-feature or all-color-mode claim",
+    "no HACS or companion-app acceptance",
+    "no release published"
+  ],
+  "cleanup": "Both named validation containers left running for integrator checks; no household installation modified.",
+  "typecheck": "passed"
+}

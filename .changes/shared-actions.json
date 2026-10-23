@@ -1,0 +1,4 @@
+{
+  "type": "new",
+  "summary": "Configure icon gestures separately from card actions, with lifecycle-safe confirmation and gesture cancellation."
+}

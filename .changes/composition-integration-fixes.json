@@ -1,0 +1,4 @@
+{
+  "type": "fixed",
+  "summary": "Preserved preview history, forwarded child-only state updates, and fixed native-details ordering, control contrast and action cancellation."
+}

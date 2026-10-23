@@ -1,0 +1,4 @@
+{
+  "type": "new",
+  "summary": "Added versioned room membership, stable IDs, structured configuration diagnostics and lossless visual draft serialization."
+}
