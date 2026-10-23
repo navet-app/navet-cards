@@ -645,11 +645,13 @@ export class NavetCard extends LitElement {
   private inlineControls(entity: CardEntity, control: RoomPlannedMember['control'] = 'auto') {
     if (control === 'state') return nothing;
     const unavailable = this.disabled || !entity.available;
+    const power = entity.active ? 'power_off' : 'power_on';
     if (control === 'select') return html`${this.choice(entity,'select')}${this.choice(entity,'hvac_mode')}${this.choice(entity,'source')}${this.fanControls(entity)}${this.deviceOptions(entity)}`;
     if (control === 'slider') return html`${(['brightness','volume','temperature','position','number','color_temperature','speed'] as const).filter(type=>entity.capabilities.includes(type)).map(type=>this.slider(entity,type,true))}${entity.capabilities.includes('temperature_range') ? this.advancedControl('range',entity) : nothing}${entity.capabilities.includes('tilt') ? this.advancedControl('tilt',entity) : nothing}${entity.externalId.startsWith('humidifier.') ? this.advancedControl('comfort',entity) : nothing}`;
     if (control === 'toggle') return entity.capabilities.includes('toggle') ? this.action(this.t(entity.active ? 'off' : 'on'), 'switch', () => this.command({type:'toggle'}, entity), unavailable) : nothing;
     return html`<div class="inline-actions">
       ${entity.capabilities.includes('toggle') ? this.action(this.t(entity.active ? 'off' : 'on'), 'switch', () => this.command({type:'toggle'}, entity), unavailable) : nothing}
+      ${entity.externalId.startsWith('water_heater.') && entity.capabilities.includes(power) ? this.action(this.t(entity.active ? 'off' : 'on'), 'switch', () => this.command({type:power}, entity), unavailable) : nothing}
       ${entity.capabilities.includes('activate') ? this.action(this.t('runAction'), 'play', () => this.command({type:'activate'},entity),unavailable) : nothing}
       ${(['start','pause','return_home'] as const).filter(type=>entity.capabilities.includes(type)).map(type=>this.action(this.t(type),type === 'start' ? 'play' : type,()=>this.command({type},entity),unavailable))}
       ${entity.capabilities.includes(entity.state === 'playing' ? 'pause' : 'play') ? this.action(this.t(entity.state === 'playing' ? 'pause' : 'play'), entity.state === 'playing' ? 'pause' : 'play', () => this.command({type:'play_pause'}, entity), unavailable) : nothing}

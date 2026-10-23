@@ -56,3 +56,30 @@ test('comfort room controls and standalone sub-controls preserve device ownershi
   ['humidifier','set_humidity',{humidity:55},{entity_id:'humidifier.study'}],['water_heater','set_away_mode',{away_mode:true},{entity_id:'water_heater.home'}],
  ]);
 });
+for (const width of [1280,390]) test(`room water-heater power respects state, capabilities and disabled contexts at ${width}px`,async({page},info)=>{
+ await page.setViewportSize({width,height:844});
+ await page.evaluate(()=>{const w=window as any;w.mountComfort('room',{name:'Hot water room',entities:['water_heater.home']});});
+ const room=page.locator('#comfort-2');
+ await room.getByRole('button',{name:'Controls',exact:true}).click();
+ const power=room.locator('.room-control').getByRole('button',{name:/^(On|Off)$/});
+ await expect(power).toHaveAccessibleName('Off');await power.click();
+ await page.evaluate(()=>{const w=window as any;w.comfortHost={...w.comfortHost,states:{...w.comfortHost.states,'water_heater.home':{...w.comfortHost.states['water_heater.home'],state:'off'}}};w.comfortSync();});
+ await expect(power).toHaveAccessibleName('On');await power.click();
+ expect(await page.evaluate(()=>(window as any).comfortCalls)).toEqual([
+  ['water_heater','turn_off',{}, {entity_id:'water_heater.home'}],
+  ['water_heater','turn_on',{}, {entity_id:'water_heater.home'}],
+ ]);
+ await expect(room.locator('.room-dialog')).toBeVisible();
+ expect(await room.locator('.room-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ await room.locator('.room-dialog').screenshot({path:info.outputPath(`simulated-room-water-power-${width}.png`)});
+ const previousPower=await power.elementHandle();
+ await page.evaluate(()=>{const w=window as any;w.comfortCards[2].preview=true;});
+ await expect(power).toHaveCount(0);
+ await previousPower!.evaluate((el:HTMLButtonElement)=>el.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true})));
+ await page.evaluate(()=>{const w=window as any;w.comfortCards[2].preview=false;w.comfortHost={...w.comfortHost,states:{...w.comfortHost.states,'water_heater.home':{...w.comfortHost.states['water_heater.home'],state:'unavailable'}}};w.comfortSync();});
+ await room.getByRole('button',{name:'Controls',exact:true}).click();
+ await expect(power).toBeDisabled();
+ await page.evaluate(()=>{const w=window as any;const raw=w.comfortHost.states['water_heater.home'];w.comfortHost={...w.comfortHost,states:{...w.comfortHost.states,'water_heater.home':{...raw,state:'eco',attributes:{...raw.attributes,supported_features:7}}}};w.comfortSync();});
+ await expect(power).toHaveCount(0);
+ expect(await page.evaluate(()=>(window as any).comfortCalls)).toHaveLength(2);
+});
