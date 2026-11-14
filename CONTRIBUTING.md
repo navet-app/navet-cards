@@ -13,7 +13,7 @@ npx playwright install chromium
 npm run dev
 ```
 
-Open http://127.0.0.1:4178/demo/ for the simulated dashboard or http://127.0.0.1:4178/demo/composition.html for the composition preview. Rebuild after source changes and refresh the preview. Run `npm run check` before submitting behavior changes; it checks types, contracts, the bundle, and Chromium interactions. See [human verification](docs/human-verification.md) for opt-in tests against a disposable Home Assistant instance.
+Open http://127.0.0.1:4178/demo/ for the simulated dashboard or http://127.0.0.1:4178/demo/composition.html for the composition preview. Rebuild after source changes and refresh the preview. Run `npm run check` before submitting behavior changes; it checks types, contracts, the bundle, and Chromium interactions. See [human verification](docs/human-verification.md) for tests against a disposable Home Assistant instance and [architecture](docs/implementation.md) for source ownership.
 
 ## Build an installable resource
 
@@ -26,32 +26,59 @@ npm ci
 npm run build
 ```
 
-The build produces the default standalone `dist/navet-cards.js` and a modular candidate under `dist/modular/`. Use the standalone file for the [manual installation steps](README.md#install-navet-cards). Neither a local build nor a verification ZIP establishes release publication, household acceptance or HACS acceptance.
+The build produces the default standalone `dist/navet-cards.js` and a modular candidate under `dist/modular/`. Use the standalone file for the [manual installation steps](README.md#install-navet-cards).
 
-The modular candidate includes an entry and relative chunks. Copy every runtime file listed in `dist/modular/artifact-manifest.json`, preserving paths; copying only its entry breaks deferred editor/data/control loading. Keep each candidate in a separate directory when testing upgrade/rollback, and retain files needed by old open tabs. HACS metadata continues to identify the standalone resource; modular HACS installation is not accepted.
+For a modular build, copy every runtime file listed in `dist/modular/artifact-manifest.json` and preserve relative paths. Use a versioned directory for each modular build so open browser tabs can still load their chunks during upgrades. Marketplace and HACS use the standalone resource.
 
 Run `npm run check` for TypeScript, contract, release, build, and browser checks. To use installed Chrome and a free preview port, run `NAVET_BROWSER_CHANNEL=chrome NAVET_PREVIEW_PORT=4187 npm run check`.
 
 Run `npm run package:verification` to run the checks and produce a verification folder and ZIP under `dist/`, including the resource, checksum, instructions, and test status. Published downloads are built by [release automation](docs/release-workflow.md).
 
-After those checks, `node scripts/package-verification.mjs --modular` creates a separate modular verification bundle. Its artifact manifest and `SHA256SUMS` cover the complete runtime file set. Test the extracted bundle from its intended resource prefix; verify editor opening, deferred controls/data, missing-file errors, a previously open tab, upgrade and rollback using the [release checklist](docs/release-checklist.md). Do not treat a successful ZIP or simulated host as completed installation acceptance.
+After those checks, `node scripts/package-verification.mjs --modular` creates a separate modular verification bundle. Its artifact manifest and `SHA256SUMS` cover the complete runtime file set. Test the extracted bundle from its intended resource prefix; verify editor opening, deferred controls/data, missing-file errors, a previously open tab, upgrade and rollback using the [release checklist](docs/release-checklist.md).
 
 ## Bundle policy and focused verification
 
-`npm run build` measures both profiles using [scripts/bundle-budgets.json](scripts/bundle-budgets.json), now a report-only measurement policy. Bundle size ceilings and target-based gates are deferred at the maintainer's request. `dist/bundle-report.json` records raw bytes, gzip level 6, complete dependency closures, baseline deltas and module contributions for the initial view, optional features and full installation. `node scripts/build.mjs --analyze` also writes the esbuild metafile under `dist/bundle-analysis/`. Artifact integrity, supported versions and safe paths remain validated.
+`npm run build` measures both profiles using [scripts/bundle-budgets.json](scripts/bundle-budgets.json), a report-only measurement policy. `dist/bundle-report.json` records raw bytes, gzip level 6, complete dependency closures, baseline deltas and module contributions for the initial view, optional features and full installation. `node scripts/build.mjs --analyze` also writes the esbuild metafile under `dist/bundle-analysis/`. Artifact integrity, supported versions and safe paths remain validated.
 
-For room changes, use the [visual setup guide](docs/room-setup.md) and the parent-editor journey in `tests/browser/room-journey.spec.ts`. Preserve legacy configuration, unknown fields, save/cancel behavior and disabled preview side effects. Run the smallest affected tests while developing, then `npm run check` at integration. Screenshots and tests must name their simulated host; physical-device evidence belongs in the live verification process.
+For room changes, use the [visual setup guide](docs/room-setup.md) and the parent-editor journey in `tests/browser/room-journey.spec.ts`. Preserve saved configurations and unknown fields. Verify save, cancel, and read-only preview behavior. Run the smallest affected tests while developing, then `npm run check` at integration. Screenshots and tests must name their simulated host; physical-device evidence belongs in the live verification process.
+
+## Review cards in a pull request
+
+Use the Cloudflare Pages preview link on the PR to open the card catalog or room composition. Compare the changed cards with [Navet's live demo](https://demo.navet.app/) at the same viewport size. Check small and extra-small examples, the affected themes, unavailable states, action failures, and keyboard controls. The preview uses simulated devices.
+
+### Connect PR preview hosting
+
+Connect `navet-app/navet-cards` to a Cloudflare Pages project with these settings:
+
+- Production branch: `main`.
+- Framework preset: None.
+- Build command: `npm ci && npm run build:preview`.
+- Build output directory: `dist/preview`.
+- Environment variable: `NODE_VERSION=22`.
+- Preview branch deployments: all branches, with PR comments enabled.
+
+Cloudflare's Git integration supplies the preview URL on the PR. It builds the public simulated catalog without Home Assistant credentials.
+
+### Download a preview from CI
+
+GitHub Actions also saves an interactive preview independently of hosting. Open the PR's **Validate cards** check and its run summary, then download **navet-cards-preview** from the current PR head after its checks pass. Extract it and run this command inside the extracted folder:
+
+```sh
+python3 -m http.server 4178
+```
+
+Open `http://localhost:4178` and choose the card catalog or room composition. The **navet-cards-verification** artifact contains the built resource, verification bundle, and browser screenshots.
 
 ## Submit a pull request
 
 1. Fork the repository and create a focused branch.
 2. Make the smallest change that addresses the issue. Preserve saved card configuration and advanced YAML fields.
-3. Update the README when configuration or user-visible behavior changes.
+3. Update the [card configuration reference](docs/card-configuration.md) or README when configuration or user-visible behavior changes.
 4. Use Conventional Commit titles, such as `fix: preserve card appearance when editing`.
 5. Add a `.changes/<topic>.json` [release fragment](docs/release-workflow.md#release-notes), including `internal` for changes without a user-facing outcome.
 6. Explain the outcome, link the issue, and report the checks you ran. Include phone/tablet/desktop and relevant theme screenshots for UI changes, using simulated devices.
 
-Maintainers review the current commit and CI before merging. Browser simulations do not replace household-device, companion-app, and distribution checks in the [release checklist](docs/release-checklist.md).
+Maintainers review the current commit and CI before merging. The [release checklist](docs/release-checklist.md) covers household devices, companion apps, and distribution.
 
 ## Code boundaries
 

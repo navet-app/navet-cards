@@ -26,8 +26,9 @@ Use [verification status](verification-status.md) for the beta's recorded eviden
 ## Distribution validation
 
 - Verify a clean manual install, versioned resource refresh, upgrade, and rollback.
-- Prepare a tested release resource and validate installation as a HACS Dashboard custom repository.
-- Verify HACS installs the single `navet-cards.js` resource from the release, registers it, and upgrades it correctly.
+- Verify the candidate package contains the standalone `navet-cards.js` asset named in `hacs.json`. Install the beta or RC manually for candidate testing. Marketplace and legacy HACS skip prereleases by default on a clean add.
+- After publishing the regular release, connect GitHub on a clean Home Assistant 2026.11.1 or later instance and add `https://github.com/navet-app/navet-cards` through **Settings → Marketplace → Add from link**. Select **Dashboard** if prompted. Verify the add succeeds with default prerelease settings, and record the Home Assistant version and selected release tag.
+- Install from Marketplace and verify it registers a single JavaScript module under `/local/community/navet-cards/` and that Navet appears in the card picker. Verify upgrade and rollback when a second release is available. Check the Dashboard custom-repository add and resource registration on a supported legacy HACS installation as well.
 - Set the supported Home Assistant minimum from live evidence, then align `hacs.json` and README.
 - Record tested HA/browser/app versions and unresolved issues in release notes.
 - Complete the applicable live gates before promoting Dev to beta/RC, and install the selected candidate before stable publication. Default HACS catalog inclusion is a separate submission.

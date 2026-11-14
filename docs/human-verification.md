@@ -71,6 +71,14 @@ Use `docker compose down` to remove the Compose container and network, then `doc
 
 Use `2024.6.4 18125` with the setup script to check the compatibility target separately; this instance is outside the Compose project. Stop it with `docker stop navet-cards-ha-2024-6-4` after verification and resume it with `docker start navet-cards-ha-2024-6-4`.
 
-## Acceptance
+## Rendered frontend checks
 
-Accept the beta after household device and companion-app checks pass. HACS distribution requires a published release resource and a separate clean-install/upgrade check. The maintainer approves prerelease publication after reviewing this evidence.
+Use installed Chrome and a session from the disposable setup above. Copy the standalone artifact into the host’s `config/www/` and the complete modular artifact into `config/www/navet-modular/`.
+
+```sh
+NAVET_HA_SESSION=.ha-validation/2026.9.4/session.json node scripts/ha-frontend-check.mjs
+```
+
+The harness checks native selectors and details, editor round trips, read-only previews, and standalone and modular loading in separate browser contexts. Find the report and screenshots in the session’s `frontend-evidence/` directory.
+
+Use the [release checklist](release-checklist.md) for household and distribution acceptance.

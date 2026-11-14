@@ -1,6 +1,8 @@
 # Competitive implementation progress
 
-Updated 20 October 2026. This records integrated work against the [complete plan](2026-10-20-competitive-implementation-plan.md). A delivered slice does not mean the entire package or competitor parity is complete.
+Implementation snapshot from October 2026. See the [configuration guide](../card-configuration.md) for the current card catalog.
+
+The tables record work against the [October implementation plan](2026-10-20-competitive-implementation-plan.md).
 
 ## Integrated behavior
 

@@ -10,4 +10,4 @@ Room-first composition and efficient dashboard updates for Home Assistant.
 - Keep room membership indexed across unrelated state updates and release closed panel content.
 - Use a visible climate target slider and keyboard/touch step controls.
 
-This build is prepared for human verification. The [verification status](verification-status.md) records tested surfaces and remaining household, low-power client, companion-app and HACS gates. The maintainer approves prerelease publication after reviewing the evidence.
+See [verification status](verification-status.md) for the tested build and acceptance scope.
