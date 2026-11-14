@@ -1,5 +1,7 @@
 # Navet Cards audit against Bubble Card 3.0
 
+Historical baseline. For the current catalog and Bubble 3.4.2 comparison, see the [October 20 competitive audit](2026-10-20-navet-cards-competitive-audit.md).
+
 Audit date: 2026-10-06. Navet Cards: `0.1.0-beta.2`, commit `c12ba818eab2b4a2ff65c37c2f77fa46e23c5c9e`. Comparison: Bubble Card **v3.0.0**, commit `6dc07eb504d9f9f26c48ec58a0c0ef0e514e40f5`.
 
 ## Decision

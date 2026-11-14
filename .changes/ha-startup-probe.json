@@ -1,0 +1,4 @@
+{
+  "type": "internal",
+  "summary": "Bound Home Assistant startup probes so live validation retries stalled connections."
+}

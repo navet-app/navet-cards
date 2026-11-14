@@ -1,7 +1,8 @@
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parsePromotionTag, resolvePromotion } from '../scripts/release-promotion.mjs';
-import { validatePromotion, validateEvidence } from '../scripts/release.mjs';
+import { validatePromotion, validateEvidence, validatePublicationAssets, legacyPublicationRecovery } from '../scripts/release.mjs';
 import { validateFragment, renderNotes } from '../scripts/release-notes.mjs';
 const dev = 'navet-cards-dev-0.1.0-dev.20261007120000';
 const beta = 'v0.1.0-beta.1';
@@ -56,5 +57,55 @@ test('Git-range notes include every new fragment since stable and exclude releas
     assert.match(notes,/Added room controls\./);assert.match(notes,/Fixed unavailable readings\./);
     assert.doesNotMatch(notes,/Previously released|test tooling/);
     execFileSync(process.execPath,[resolve('scripts/release-notes.mjs'),'check'],{cwd:dir,env:{...process.env,RELEASE_SHA:'HEAD',NOTES_BASE:'v0.1.0'}});
+  } finally {rmSync(dir,{recursive:true,force:true});}
+});
+
+test('schema-2 publication evidence binds standalone manifest and downloaded runtime bytes', () => {
+  const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+  const resource = Buffer.from('/* Navet Cards 0.1.0-beta.1 | test */\nexport {};');
+  const file = {path:'navet-cards.js',bytes:resource.length,sha256:digest(resource),imports:[]};
+  const manifest = Buffer.from(JSON.stringify({schemaVersion:1,version:'0.1.0-beta.1',profile:'standalone',entry:'navet-cards.js',files:[file]}));
+  const evidence = {schema:2,repository:'navet-app/navet-cards',tag:beta,version:'0.1.0-beta.1',commit:'a'.repeat(40),sha256:digest(resource),runId:123,profile:'standalone',artifactManifest:{name:'artifact-manifest.json',sha256:digest(manifest)},assets:[{name:file.path,bytes:file.bytes,sha256:file.sha256}]};
+  const expected = {repo:evidence.repository,tag:beta,sha:evidence.commit};
+  validateEvidence(evidence, expected);
+  validatePublicationAssets(evidence, resource, manifest);
+  assert.throws(() => validatePublicationAssets(evidence, Buffer.from('tampered'), manifest), /resource/);
+  assert.throws(() => validatePublicationAssets(evidence, resource, Buffer.from('{}')), /manifest/);
+  assert.throws(() => validatePublicationAssets(evidence, resource), /manifest/);
+  for (const patch of [{profile:'modular'},{artifactManifest:{name:'../manifest',sha256:digest(manifest)}},{assets:[]},{assets:[{name:'navet-cards.js',bytes:0,sha256:evidence.sha256}]}]) assert.throws(() => validateEvidence({...evidence,...patch},expected));
+  const alteredManifest = Buffer.from(JSON.stringify({...JSON.parse(manifest),files:[{...file,path:'../resource.js'}]}));
+  assert.throws(() => validatePublicationAssets({...evidence,artifactManifest:{...evidence.artifactManifest,sha256:digest(alteredManifest)}},resource,alteredManifest),/manifest/);
+  validatePublicationAssets({...evidence,schema:1},resource);
+});
+
+test('legacy recovery retains schema-1 assets without downgrading schema-2 publications', () => {
+  const published = {draft:false,assets:[{name:'navet-cards.js'},{name:'navet-cards-release-evidence.json'}]};
+  assert.equal(legacyPublicationRecovery(published,{schema:1}),true);
+  assert.throws(() => legacyPublicationRecovery(published,{schema:2}),/manifest/);
+  assert.throws(() => legacyPublicationRecovery(published,undefined),/manifest/);
+  assert.equal(legacyPublicationRecovery({...published,draft:true},undefined),false);
+  assert.equal(legacyPublicationRecovery({...published,assets:[...published.assets,{name:'artifact-manifest.json'}]},{schema:2}),false);
+});
+
+test('downloaded release archives contain the same evidenced manifest and runtime', async () => {
+  const {mkdtempSync,writeFileSync,rmSync} = await import('node:fs');
+  const {tmpdir} = await import('node:os');
+  const {join} = await import('node:path');
+  const {execFileSync} = await import('node:child_process');
+  const {validatePublicationArchive} = await import('../scripts/release.mjs');
+  const dir = mkdtempSync(join(tmpdir(),'navet-release-archive-'));
+  const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+  try {
+    const resource = Buffer.from('/* Navet Cards 0.1.0-beta.1 | test */\nexport {};');
+    const file = {path:'navet-cards.js',bytes:resource.length,sha256:hash(resource),imports:[]};
+    const manifest = Buffer.from(JSON.stringify({schemaVersion:1,version:'0.1.0-beta.1',profile:'standalone',entry:'navet-cards.js',files:[file]}));
+    const evidence = {schema:2,version:'0.1.0-beta.1',sha256:hash(resource),artifactManifest:{sha256:hash(manifest)},assets:[{name:file.path,bytes:file.bytes,sha256:file.sha256}]};
+    writeFileSync(join(dir,'navet-cards.js'),resource);
+    writeFileSync(join(dir,'artifact-manifest.json'),manifest);
+    execFileSync('zip',['-q','valid.zip','navet-cards.js','artifact-manifest.json'],{cwd:dir});
+    validatePublicationArchive(join(dir,'valid.zip'),evidence);
+    writeFileSync(join(dir,'navet-cards.js'),'tampered');
+    execFileSync('zip',['-q','tampered.zip','navet-cards.js','artifact-manifest.json'],{cwd:dir});
+    assert.throws(()=>validatePublicationArchive(join(dir,'tampered.zip'),evidence),/resource/);
   } finally {rmSync(dir,{recursive:true,force:true});}
 });

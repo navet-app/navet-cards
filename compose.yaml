@@ -1,0 +1,16 @@
+name: navet-cards-validation
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:2026.9.4
+    container_name: navet-cards-ha-2026-9-4
+    labels:
+      navet-cards.validation: "true"
+    ports:
+      - "127.0.0.1:18124:8123"
+    volumes:
+      - type: bind
+        source: ./.ha-validation/2026.9.4/config
+        target: /config
+        bind:
+          create_host_path: false

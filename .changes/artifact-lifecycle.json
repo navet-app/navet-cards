@@ -1,0 +1,24 @@
+{
+  "type": "internal",
+  "summary": "Verify complete release artifacts and exercise modular loading across installation prefixes and simulated upgrades.",
+  "package": "B02 release integration and modular browser lifecycle",
+  "behavior": {
+    "publicationDefault": "standalone only",
+    "evidence": "schema 2 binds standalone runtime and manifest; schema 1 promotion and original-payload recovery remain supported",
+    "downloadedVerification": "resource, manifest and release ZIP match evidence before publication completion",
+    "immutableRecovery": "existing versioned payloads remain byte-identical; no schema-2 downgrade when manifest is missing",
+    "browser": "actual modular output loads at direct, HACS-shaped and reverse-proxy prefixes; missing editor rejects while controls work; simulated upgrade retains old chunks"
+  },
+  "verification": {
+    "releaseTests": 8,
+    "browserTests": 5,
+    "commands": ["node --test tests/release.test.mjs", "npx playwright test tests/browser/artifacts.spec.ts --workers=1", "npm run typecheck", "git diff --check"],
+    "result": "passed"
+  },
+  "budgets": {
+    "change": "new explicitly allocated optional data pack; existing profile ceilings unchanged",
+    "dataIncremental": {"target":{"raw":10000,"gzip":4000},"hard":{"raw":15000,"gzip":6000}},
+    "lastMeasuredBeforeFurtherIntegration": {"standalone":{"raw":188675,"gzip":53393},"modularInitial":{"raw":145634,"gzip":42285},"editorIncremental":{"raw":37741,"gzip":10239},"dataIncremental":{"raw":5094,"gzip":2208},"modularInstalled":{"raw":188469,"gzip":54732}}
+  },
+  "remainingAcceptance": ["No release published", "Modular HACS delivery and disposable HA not tested", "Old-chunk retention simulated, not verified in actual hosting", "Dynamic import failure may require document reload after restoring assets", "Real household upgrade and rollback acceptance pending"]
+}

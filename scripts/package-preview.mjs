@@ -1,12 +1,16 @@
+import { copyArtifact } from './artifact-manifest.mjs';
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 
 // Package only public fixtures and the built resource, never host sessions or credentials.
-const output = 'dist/preview';
+const modular = process.argv.includes('--modular');
+const output = modular ? 'dist/preview-modular' : 'dist/preview';
+const source = modular ? 'dist/modular' : 'dist';
+const manifest = JSON.parse(await readFile(modular ? 'dist/modular/artifact-manifest.json' : 'dist/navet-cards.manifest.json', 'utf8'));
 await rm(output, { recursive: true, force: true });
 await mkdir(`${output}/dist`, { recursive: true });
 await cp('demo', `${output}/demo`, { recursive: true });
-await cp('dist/navet-cards.js', `${output}/dist/navet-cards.js`);
-const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+await copyArtifact(source, `${output}/dist`, manifest);
+const { version } = manifest;
 await writeFile(`${output}/index.html`, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Navet Cards PR preview</title>
 <style>body{margin:0;background:#16191f;color:#eef0f4;font:16px system-ui,sans-serif}main{max-width:640px;margin:10vh auto;padding:24px}a{color:#f4b58c}li{margin:16px 0}p{line-height:1.6;color:#a4abb8}</style></head>

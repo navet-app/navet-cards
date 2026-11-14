@@ -1,0 +1,18 @@
+{
+  "type": "new",
+  "summary": "Compose native and installed custom child cards with lazy active content, contained errors and a visual order/editor interface.",
+  "scope": "C04 child host/editor foundation and actual native frontend verification; competitor coexistence acceptance remains outstanding",
+  "verification": {
+    "browser": "Six focused Chromium scenarios passed; the integrated full check passed all 125 browser scenarios, including explicit complete-config removal and collapsed-room sizing.",
+    "typecheck": "Passed after the host/editor and explicit replacement path were implemented.",
+    "visual": "Inspected the 390px room popup screenshot with fixture children and a contained failure.",
+    "frontend": "Actual HA 2024.6.4 and 2026.9.4 each passed standalone desktop and modular phone contexts: native Tile/history/calendar mount, contained missing custom card, active-only lifecycle, actual Tile editor/picker, opaque sibling JSON roundtrip, inert preview, zero service calls/page errors. Frozen candidate hashes are recorded in docs/plans/composition-host-validation.md."
+  },
+  "limits": [
+    "Actual native frontend integration passed; pinned Bubble/Mushroom/button-card coexistence and calendar event contents remain unverified.",
+    "Preview inertness prevents user interaction; foreign code is not sandboxed.",
+    "Visual editor omissions retain existing top-level fields. Advanced complete configuration replacement enables removal.",
+    "A child without a visual editor can require its own YAML or JSON configuration.",
+    "No physical-device, HACS, third-party coexistence or release acceptance is claimed."
+  ]
+}

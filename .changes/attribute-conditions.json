@@ -1,0 +1,4 @@
+{
+  "type": "new",
+  "summary": "Added exact scalar attribute visibility conditions and visual typed fields with explicit missing and unavailable behavior."
+}

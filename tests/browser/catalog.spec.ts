@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.beforeEach(async({page})=>{await page.goto('/demo/index.html');await expect(page.locator('#catalog > *')).toHaveCount(19);});
+test.beforeEach(async({page})=>{await page.goto('/demo/index.html');await expect(page.locator('#catalog > *')).toHaveCount(27);});
 test('new entity controls use native services and unavailable entities disable actions',async({page})=>{
   const fan=page.locator('navet-fan-card');await fan.getByRole('slider',{name:'Speed'}).fill('60');
   await page.locator('navet-lock-card').getByRole('slider',{name:'Slide to unlock'}).fill('100');
@@ -35,10 +35,10 @@ test('photo failures show a fallback and configured content stays literal',async
   await expect(page.locator('navet-note-card')).toContainText('<img src=x onerror=alert(1)>');await expect(page.locator('navet-note-card').locator('img')).toHaveCount(0);
 });
 test('custom editors preserve advanced YAML when content and entity lists change',async({page})=>{
-  expect(await page.evaluate(()=>(window as any).customCards.length)).toBe(26);
+  expect(await page.evaluate(()=>(window as any).customCards.length)).toBe(34);
   expect(await page.evaluate(()=>(window as any).customCards.find((c:any)=>c.type==='navet-info-card').getEntitySuggestion((window as any).demoHass,'sensor.power').config)).toEqual({type:'custom:navet-info-card',entities:['sensor.power']});
   await page.evaluate(()=>{const editor=document.querySelector('navet-card-editor') as any;editor.setConfig({type:'custom:navet-info-card',entities:['sensor.power'],extra:{kept:true},tap_action:{action:'perform-action',perform_action:'scene.turn_on',target:{entity_id:'scene.evening'}}});(window as any).edited=[];editor.addEventListener('config-changed',(e:any)=>(window as any).edited.push(e.detail.config));});
-  await page.locator('#editor-panel').evaluate((e:HTMLDetailsElement)=>e.open=true);await page.locator('#editor').getByLabel('entities',{exact:true}).fill('sensor.power\nsensor.energy');await page.locator('#editor').getByLabel('entities',{exact:true}).dispatchEvent('change');
+  await page.locator('#editor-panel').evaluate((e:HTMLDetailsElement)=>e.open=true);await page.locator('#editor navet-ordered-entities').getByLabel('Add entity',{exact:true}).selectOption('sensor.energy');
   expect(await page.evaluate(()=>(window as any).edited.at(-1))).toMatchObject({entities:['sensor.power','sensor.energy'],extra:{kept:true},tap_action:{target:{entity_id:'scene.evening'}}});
 });
 test('catalog fits desktop and phone themes and provides screenshots',async({page})=>{
@@ -58,7 +58,7 @@ test('lock slide requires completion and supports keyboard with cancellation',as
   expect(await page.evaluate(()=>(window as any).calls.map((c:any)=>c.service))).toEqual(['unlock']);
 });
 test('every added family fits its default Sections height',async({page})=>{
-  await page.locator('#catalog > *').evaluateAll(cards=>cards.forEach(card=>{const element=card as HTMLElement & {getGridOptions:()=>{rows:number,columns:number}};const grid=element.getGridOptions();element.style.height=`${grid.rows*56+(grid.rows-1)*8}px`;element.style.width=grid.columns===3?'80px':grid.columns===6?'168px':'344px';}));
+  await page.locator('#catalog > *').evaluateAll(cards=>cards.forEach(card=>{const element=card as HTMLElement & {getGridOptions:()=>{rows:number|'auto',columns:number}};const grid=element.getGridOptions();element.style.height=grid.rows==='auto'?'auto':`${grid.rows*56+(grid.rows-1)*8}px`;element.style.width=grid.columns===3?'80px':grid.columns===6?'168px':'344px';}));
   const overflow=await page.locator('#catalog > *').evaluateAll(cards=>cards.filter(card=>{const surface=card.shadowRoot?.querySelector('.card');return surface && (surface.scrollWidth>surface.clientWidth+1 || surface.scrollHeight>surface.clientHeight+1);}).map(card=>card.tagName));expect(overflow).toEqual([]);
 });
 
@@ -98,8 +98,14 @@ test('photo navigation and media selection stay within configured sources',async
   const stack=page.locator('navet-media-stack-card');await stack.getByRole('combobox',{name:'Speaker',exact:true}).selectOption('media_player.study');await expect(stack).toContainText('Jazz');await stack.getByRole('button',{name:'Play',exact:true}).click();expect(await page.evaluate(()=>(window as any).calls.at(-1).target)).toEqual({entity_id:'media_player.study'});await stack.getByRole('button',{name:'Details',exact:true}).click();await expect(page.locator('#events')).toContainText('media_player.study');
 });
 test('forecast and power history show supplied data and ignore stale async responses',async({page})=>{
-  await expect(page.locator('navet-weather-card').locator('.forecast-row > div')).toHaveCount(7);await expect(page.locator('navet-energy-now-card').getByRole('img',{name:'Power history'})).toBeVisible();
-  await page.evaluate(()=>{const w=window as any;w.weatherResolve=undefined;w.demoHass={...w.demoHass,callWS:()=>new Promise(resolve=>w.weatherResolve=resolve),states:{...w.demoHass.states,'weather.second':{entity_id:'weather.second',state:'cloudy',attributes:{friendly_name:'Second place',supported_features:1,temperature:9,temperature_unit:'°C'}}}};const card=w.catalogCards.find((c:any)=>c.tagName==='NAVET-WEATHER-CARD');card.hass=w.demoHass;card.setConfig({type:'custom:navet-weather-card',entity:'weather.second'});card.setConfig({type:'custom:navet-weather-card',entity:'weather.home'});w.weatherResolve({response:{'weather.second':{forecast:[{datetime:new Date().toISOString(),temperature:99}]}}});});
+  await page.locator('navet-weather-card').scrollIntoViewIfNeeded();
+  await expect(page.locator('navet-weather-card').locator('.forecast-row > div')).toHaveCount(7);
+  await page.locator('navet-energy-now-card').scrollIntoViewIfNeeded();
+  await expect(page.locator('navet-energy-now-card').getByRole('img',{name:'Power history'})).toBeVisible();
+  await page.locator('navet-weather-card').scrollIntoViewIfNeeded();
+  await page.evaluate(()=>{const w=window as any;w.weatherResolve=undefined;w.demoHass={...w.demoHass,callWS:()=>new Promise(resolve=>w.weatherResolve=resolve),states:{...w.demoHass.states,'weather.second':{entity_id:'weather.second',state:'cloudy',attributes:{friendly_name:'Second place',supported_features:1,temperature:9,temperature_unit:'°C'}}}};const card=w.catalogCards.find((c:any)=>c.tagName==='NAVET-WEATHER-CARD');card.hass=w.demoHass;card.setConfig({type:'custom:navet-weather-card',entity:'weather.second'});});
+  await page.waitForFunction(()=>typeof (window as any).weatherResolve==='function');
+  await page.evaluate(async()=>{const w=window as any;const staleResolve=w.weatherResolve;const card=w.catalogCards.find((c:any)=>c.tagName==='NAVET-WEATHER-CARD');card.setConfig({type:'custom:navet-weather-card',entity:'weather.home'});staleResolve({response:{'weather.second':{forecast:[{datetime:new Date().toISOString(),temperature:99}]}}});await Promise.resolve();await card.updateComplete;});
   await expect(page.locator('navet-weather-card')).not.toContainText('99');
 });
 

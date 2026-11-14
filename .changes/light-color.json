@@ -1,0 +1,4 @@
+{
+  "type": "improved",
+  "summary": "Added capability-aware light hue, saturation and effect controls with checked Home Assistant color translation."
+}

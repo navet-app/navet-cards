@@ -1,0 +1,26 @@
+{
+  "type": "internal",
+  "summary": "Check room control cleanup, navigation, focus and subscriptions through 100 simulated open-close cycles and reconnect.",
+  "scope": "Q02 bounded browser lifecycle acceptance using kitchen v2 fixture",
+  "result": "passed",
+  "evidence": {
+    "cycles": 100,
+    "reconnects": 1,
+    "relevantUpdates": 10,
+    "contextSubscriptions": 2,
+    "contextReleases": 2,
+    "maxClosedControls": 0,
+    "maxOpenWidgets": 1,
+    "explicitCommands": 2,
+    "detailEvents": ["sensor.kitchen_temperature"],
+    "forecastRequests": 0,
+    "historyRequests": 0,
+    "finalHash": "",
+    "finalDialogOpen": false,
+    "finalDataObserver": false,
+    "unhandledErrors": []
+  },
+  "command": "NAVET_PREVIEW_PORT=4196 npx playwright test tests/browser/room-soak.spec.ts --workers=1 --output=/tmp/navet-room-soak-results",
+  "artifact": "room-lifecycle-100-cycles.json Playwright attachment",
+  "limits": ["simulated browser and host only", "no heap or timing thresholds", "no physical-device or long-session soak claim", "no production asset rebuild or publication"]
+}

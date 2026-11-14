@@ -1,0 +1,4 @@
+{
+  "type": "new",
+  "summary": "Added update version and progress controls with latest-version intent validation, explicit installation confirmation and safe release links."
+}

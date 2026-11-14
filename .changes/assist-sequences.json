@@ -1,0 +1,4 @@
+{
+  "type": "new",
+  "summary": "Added native Assist actions, standard custom DOM events and visually editable action sequences with confirmation, error handling and lifecycle cancellation."
+}

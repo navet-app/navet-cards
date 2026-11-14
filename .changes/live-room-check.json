@@ -1,0 +1,4 @@
+{
+  "type": "internal",
+  "summary": "Added disposable Home Assistant frontend checks for native room editing, preview safety, entity details and modular resources."
+}

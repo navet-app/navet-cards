@@ -75,6 +75,9 @@ jobs:
       - name: Verify live backend contracts
         env:
           NAVET_HA_SESSION: .ha-validation/${{ matrix.ha-version }}/session.json
+          # These pinned demo backends advertise SEEK but raise NotImplementedError.
+          # Keep real-device runs strict; this audited exception emits an explicit skip.
+          NAVET_LIVE_SKIP_DEMO_MEDIA_SEEK: '1'
         run: npm run test:live
       - name: Home Assistant diagnostics
         if: failure()

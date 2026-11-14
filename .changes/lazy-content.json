@@ -1,0 +1,200 @@
+{
+  "type": "improved",
+  "summary": "Lazy-load rich card content and separate reading icons while accounting for every optional feature closure.",
+  "scope": "Rich-content module seam and complete optional dependency-closure reporting",
+  "source": {
+    "readingGlyph": "Lightweight src/reading-glyph.ts is independent of rich rendering; compatible re-export retained in custom-content.ts.",
+    "families": [
+      "info",
+      "ups",
+      "battery",
+      "energy-now",
+      "note",
+      "photo"
+    ],
+    "button": "Returns no content without loading the pack; root owns integration.",
+    "standalone": "One supported standalone file remains built from the same source and dependency lockfile."
+  },
+  "allocationChanges": {
+    "contentIncremental": {
+      "target": {
+        "raw": 25000,
+        "gzip": 8000
+      },
+      "hard": {
+        "raw": 35000,
+        "gzip": 12000
+      }
+    },
+    "subControlsIncremental": {
+      "target": {
+        "raw": 12000,
+        "gzip": 4000
+      },
+      "hard": {
+        "raw": 18000,
+        "gzip": 6000
+      }
+    },
+    "existingProfileCeilings": "Initial/editor/data ceilings unchanged; broader suite allocation is explicit in m2-bundle-allocation.json.",
+    "advancedControlsIncremental": {
+      "target": {
+        "raw": 16000,
+        "gzip": 5000
+      },
+      "hard": {
+        "raw": 24000,
+        "gzip": 8000
+      }
+    }
+  },
+  "readOnlyComparison": {
+    "method": "esbuild write:false on identical captured source inputs; eager comparison replaces dynamic rich-content import with an equivalent static binding and resolved promise",
+    "eager": {
+      "initial": {
+        "raw": 159590,
+        "gzip": 46929,
+        "requests": 5
+      },
+      "installed": {
+        "raw": 233792,
+        "gzip": 70718,
+        "files": 14
+      }
+    },
+    "lazy": {
+      "initial": {
+        "raw": 154471,
+        "gzip": 45282,
+        "requests": 6
+      },
+      "installed": {
+        "raw": 234240,
+        "gzip": 71211,
+        "files": 16
+      }
+    },
+    "initialSaving": {
+      "raw": 5119,
+      "gzip": 1647
+    },
+    "tradeoff": "One additional initial shared-module request; installed size grows by 448 raw and 493 gzip bytes. Broader concurrent feature scope exceeds unchanged installed hard limits in this snapshot."
+  },
+  "verification": {
+    "buildTests": {
+      "count": 8,
+      "result": "passed",
+      "allocationsReported": 8
+    },
+    "typecheck": "Passed after extraction; a later repeat encountered concurrent chips mapping work outside this slice.",
+    "browser": {
+      "count": 4,
+      "result": "passed",
+      "command": "NAVET_PREVIEW_PORT=4196 npx playwright test tests/browser/lazy-content.spec.ts --workers=1 --output=/tmp/navet-lazy-content-results"
+    },
+    "lifecycleBug": "Root fixed reconnect after an import completed while detached; the regression case now passes.",
+    "stylesheetComparison": {
+      "variants": 16,
+      "computedEntries": 6288,
+      "computedDifferences": 0,
+      "byteIdenticalScreenshots": 16,
+      "matrix": "1280/390 px; dark/light/black/glass; compact/comfortable; fixed simulated history",
+      "screenshotsInspected": [
+        "/tmp/navet-style-proof-results/after-390-dark-compact.png",
+        "/tmp/navet-style-proof-results/after-1280-light-compact.png"
+      ]
+    },
+    "stylesheetFallback": {
+      "result": "passed",
+      "cards": 6,
+      "computedDifferences": 0,
+      "method": "Delete constructed stylesheet adoption support before module load; confirm base and optional fallback style elements preserve captured old CSS."
+    }
+  },
+  "limits": [
+    "Both profiles built locally; no publication",
+    "No initial-path, editor or data ceiling increased",
+    "No new dependency version or CSS minifier change; existing transform also handles extracted static stylesheet",
+    "No household, HACS or release acceptance implied"
+  ],
+  "headroomProposal": {
+    "status": "approved and implemented; rich stylesheet exported with renderer and adopted per card after base; six controls share one transport pack",
+    "method": "write:false experiments on identical captured source; six optional controls grouped into a virtual entry; rich-only CSS removed from base and exported by optional content module",
+    "baseline": {
+      "initial": {
+        "raw": 154964,
+        "gzip": 45393,
+        "requests": 6
+      },
+      "installed": {
+        "raw": 235361,
+        "gzip": 71477,
+        "files": 16
+      }
+    },
+    "styleExtraction": {
+      "cssRaw": 9290,
+      "cssGzip": 2451,
+      "initial": {
+        "raw": 145704,
+        "gzip": 43664
+      },
+      "installed": {
+        "raw": 235428,
+        "gzip": 72123
+      }
+    },
+    "groupedControls": {
+      "initial": {
+        "raw": 154992,
+        "gzip": 45321
+      },
+      "installed": {
+        "raw": 234492,
+        "gzip": 67984,
+        "files": 11
+      },
+      "incremental": {
+        "raw": 12865,
+        "gzip": 3084,
+        "requests": 1
+      }
+    },
+    "combined": {
+      "initial": {
+        "raw": 145732,
+        "gzip": 43594
+      },
+      "installed": {
+        "raw": 234559,
+        "gzip": 68632,
+        "files": 11
+      }
+    },
+    "cascadeRequirement": "Keep mixed non-content rules in base; preserve all extracted overrides in original order; adopt optional sheet after per-instance base sheets; confirm phone/desktop theme screenshots."
+  },
+  "actualOptimizedBuild": {
+    "standalone": {
+      "raw": 234017,
+      "gzip": 63577
+    },
+    "initial": {
+      "raw": 145594,
+      "gzip": 43608,
+      "requests": 6
+    },
+    "installed": {
+      "raw": 234581,
+      "gzip": 68682,
+      "files": 11
+    },
+    "contentIncremental": {
+      "raw": 14894,
+      "gzip": 4498
+    },
+    "advancedControlsIncremental": {
+      "raw": 12865,
+      "gzip": 3084
+    }
+  }
+}

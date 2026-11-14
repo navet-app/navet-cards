@@ -44,9 +44,24 @@ lovelace:
 docker('run', '-d', '--name', name, '--label', 'navet-cards.validation=true', '-p', `127.0.0.1:${port}:8123`, '-v', `${root}/config:/config`, image);
 console.log(`Started ${name}. Waiting for ${base} …`);
 let ready = false;
-for (let i = 0; i < 120; i++) {
-  try { if ((await fetch(`${base}/api/onboarding`)).ok) { ready = true; break; } } catch {}
-  await new Promise((r) => setTimeout(r, 1000));
+const startupDeadline = Date.now() + 120_000;
+while (Date.now() < startupDeadline) {
+  const controller = new AbortController();
+  // Keep a referenced timer while fetch waits for a container that may still be booting.
+  const timeout = setTimeout(() => controller.abort(), Math.min(1000, startupDeadline - Date.now()));
+  try {
+    const response = await fetch(`${base}/api/onboarding`, { signal: controller.signal });
+    if (response.ok) {
+      ready = true;
+      break;
+    }
+  } catch {
+    // Connection failures and timeouts are expected during startup.
+  } finally {
+    clearTimeout(timeout);
+  }
+  const retryDelay = Math.min(1000, startupDeadline - Date.now());
+  if (retryDelay > 0) await new Promise((resolve) => setTimeout(resolve, retryDelay));
 }
 if (!ready) throw new Error(`HA did not start. Inspect: docker logs ${name}`);
 async function post(path, data, token, form = false) {

@@ -1,0 +1,4 @@
+{
+  "type": "internal",
+  "summary": "Added opt-in real-backend discovery and round-trip checks for advertised climate modes and vacuum fan speeds, with explicit capability skips."
+}

@@ -47,7 +47,29 @@ NAVET_HA_SESSION=.ha-validation/2026.9.4/session.json npm run test:live
 
 The setup binds to `127.0.0.1`, uses demo devices, and creates a dedicated dashboard with Masonry, Sections, 30 cards across five themes, and missing entities. It creates administrator, household-member, and read-only test users. Generated credentials are in the ignored `.ha-validation/<version>/session.json`; keep that file private. Open the URL printed by the setup and sign in with a test user. Existing containers and saved sessions are preserved; setup refuses to reset them.
 
-Use `2024.6.4 18125` to check the compatibility target separately. Stop containers with `docker stop navet-cards-ha-2026-9-4 navet-cards-ha-2024-6-4` after verification. Resume them with `docker start` using the same names.
+### Manage the saved environment with Compose
+
+The repository's `compose.yaml` manages the initialized 2026.9.4 environment at http://127.0.0.1:18124. Run the setup above once before using Compose; the Compose file reuses its configuration, dashboard and accounts, and refuses to create a missing configuration directory.
+
+For the one-time switch from the container created by the setup script to Compose, run from the repository root:
+
+```sh
+docker stop navet-cards-ha-2026-9-4
+docker rm navet-cards-ha-2026-9-4
+docker compose up -d
+```
+
+Removing the container preserves the bind-mounted `.ha-validation/2026.9.4/config` directory and the adjacent `session.json` credentials. After switching, manage the environment with:
+
+```sh
+docker compose stop
+docker compose start
+docker compose logs --tail 100 -f homeassistant
+```
+
+Use `docker compose down` to remove the Compose container and network, then `docker compose up -d` to recreate them with the saved configuration. Keep `.ha-validation/` to preserve accounts and dashboards. Rebuilding the card still requires copying `dist/navet-cards.js` into `.ha-validation/2026.9.4/config/www/navet-cards.js` and refreshing the browser.
+
+Use `2024.6.4 18125` with the setup script to check the compatibility target separately; this instance is outside the Compose project. Stop it with `docker stop navet-cards-ha-2024-6-4` after verification and resume it with `docker start navet-cards-ha-2024-6-4`.
 
 ## Acceptance
 

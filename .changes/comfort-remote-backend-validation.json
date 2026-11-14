@@ -1,0 +1,4 @@
+{
+  "type": "internal",
+  "summary": "Added opt-in discovery, command readback and restoration checks for real demo humidifier, water heater and remote backends."
+}

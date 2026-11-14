@@ -1,0 +1,4 @@
+{
+  "type": "improved",
+  "summary": "Added reusable visual entity ordering, action and condition fields, with declarative state, availability and numeric condition evaluation."
+}

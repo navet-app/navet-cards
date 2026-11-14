@@ -1,0 +1,38 @@
+{
+  "type": "new",
+  "summary": "Add capability-checked media seeking, repeat, shuffle and independent power controls across native, room and row cards.",
+  "scope": "D03 advertised media options, normalized state and optional controls widget",
+  "contracts": {
+    "features": {
+      "seek": 2,
+      "power_on": 128,
+      "power_off": 256,
+      "shuffle": 32768,
+      "repeat": 262144
+    },
+    "commands": "Recheck the current owning media_player, feature bits, availability, option and seek bounds immediately before sending a service.",
+    "position": "Duration and reported position remain seconds; valid update timestamps normalize to epoch milliseconds without extrapolation.",
+    "unknown": "Unknown repeat/shuffle remain explicit placeholders. Seeking requires a known position and positive duration; off/standby playback options are disabled.",
+    "gestures": "Seeking commits on change only; pointer cancellation resets the draft and suppresses the canceled change until a new pointer or keyboard gesture.",
+    "power": "Turn on and turn off follow their independent advertised feature bits, including transient and off states."
+  },
+  "primarySources": [
+    "https://raw.githubusercontent.com/home-assistant/core/2026.9.1/homeassistant/components/media_player/const.py",
+    "https://raw.githubusercontent.com/home-assistant/core/2026.9.1/homeassistant/components/media_player/__init__.py",
+    "https://developers.home-assistant.io/docs/core/entity/media-player/"
+  ],
+  "verification": {
+    "unit": "Six focused provider tests passed: independent flags, normalization, exact services, current ownership/capabilities and invalid option/range rejection.",
+    "typecheck": "Passed after provider and widget implementation.",
+    "browser": "Four Chromium cases passed against the coordinated standalone build: native modal exact payloads/error recovery/focus, seek cancellation, unknown/off/preview/unavailable synthetic guards, and room/row ownership with closed-widget cleanup.",
+    "visual": "Inspected phone-media-options.png at 390px: both players' controls fit the dialog without horizontal overflow.",
+    "screenshot": "/tmp/navet-media-phone-proof/media-options-phone-room-a-7cf7a--and-release-closed-widgets-chromium/phone-media-options.png",
+    "integrationNote": "Root suppresses the duplicate base error notice while an advanced modal presents the error."
+  },
+  "limits": [
+    "No autonomous playback-position timer or extrapolation; seek uses the last reported position.",
+    "No media grouping or queue management in this slice.",
+    "Actual demo-backend repeat, shuffle and paired power results are recorded in docs/plans/media-validation.md; advertised seek is rejected by the demo backend.",
+    "No physical-device, HACS or release acceptance is claimed."
+  ]
+}

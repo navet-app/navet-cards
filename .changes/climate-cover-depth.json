@@ -1,0 +1,4 @@
+{
+  "type": "improved",
+  "summary": "Added atomic thermostat range targets and capability-aware cover tilt controls with provider validation."
+}

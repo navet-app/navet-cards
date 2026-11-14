@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.0-beta.3",
+  "gzip": {
+    "level": 6
+  },
+  "policy": {
+    "schemaVersion": 1,
+    "milestone": "M1 transitional",
+    "gzip": {
+      "level": 6
+    },
+    "baseline": {
+      "standalone": {
+        "raw": 139964,
+        "gzip": 39494
+      }
+    },
+    "budgets": {
+      "standalone": {
+        "target": {
+          "raw": 160000,
+          "gzip": 48000
+        },
+        "hard": {
+          "raw": 200000,
+          "gzip": 60000
+        }
+      },
+      "modularInitial": {
+        "target": {
+          "raw": 120000,
+          "gzip": 36000
+        },
+        "hard": {
+          "raw": 150000,
+          "gzip": 45000
+        }
+      },
+      "editorIncremental": {
+        "target": {
+          "raw": 60000,
+          "gzip": 18000
+        },
+        "hard": {
+          "raw": 75000,
+          "gzip": 23000
+        }
+      },
+      "modularInstalled": {
+        "target": {
+          "raw": 180000,
+          "gzip": 54000
+        },
+        "hard": {
+          "raw": 225000,
+          "gzip": 68000
+        }
+      }
+    }
+  },
+  "standalone": {
+    "files": {
+      "dist/navet-cards.js": {
+        "raw": 139964,
+        "gzip": 39494,
+        "sha256": "c382729882690bc3f7e7d2fb0f6028172d2f77ce9377b6cf57000c55c9f9ecfd",
+        "contributions": [
+          {
+            "source": "src/styles.ts",
+            "bytes": 39091
+          },
+          {
+            "source": "src/card.ts",
+            "bytes": 32831
+          },
+          {
+            "source": "src/editor.ts",
+            "bytes": 11477
+          },
+          {
+            "source": "src/providers/home-assistant.ts",
+            "bytes": 9585
+          },
+          {
+            "source": "node_modules/lit-html/lit-html.js",
+            "bytes": 7115
+          },
+          {
+            "source": "src/config.ts",
+            "bytes": 6794
+          },
+          {
+            "source": "src/i18n.ts",
+            "bytes": 6106
+          },
+          {
+            "source": "node_modules/@lit/reactive-element/reactive-element.js",
+            "bytes": 5893
+          },
+          {
+            "source": "src/custom-content.ts",
+            "bytes": 5486
+          },
+          {
+            "source": "src/climate-orb.ts",
+            "bytes": 4199
+          },
+          {
+            "source": "src/icons.ts",
+            "bytes": 2827
+          },
+          {
+            "source": "src/providers/card-data.ts",
+            "bytes": 1416
+          },
+          {
+            "source": "node_modules/@lit/reactive-element/css-tag.js",
+            "bytes": 1334
+          },
+          {
+            "source": "node_modules/lit-html/directives/repeat.js",
+            "bytes": 1187
+          },
+          {
+            "source": "node_modules/lit-html/directives/style-map.js",
+            "bytes": 828
+          },
+          {
+            "source": "node_modules/lit-element/lit-element.js",
+            "bytes": 742
+          },
+          {
+            "source": "src/index.ts",
+            "bytes": 665
+          },
+          {
+            "source": "node_modules/lit-html/directive-helpers.js",
+            "bytes": 576
+          },
+          {
+            "source": "node_modules/lit-html/directives/live.js",
+            "bytes": 563
+          },
+          {
+            "source": "node_modules/lit-html/directive.js",
+            "bytes": 299
+          },
+          {
+            "source": "src/core.ts",
+            "bytes": 28
+          },
+          {
+            "source": "node_modules/lit/index.js",
+            "bytes": 0
+          },
+          {
+            "source": "node_modules/lit-html/is-server.js",
+            "bytes": 0
+          },
+          {
+            "source": "node_modules/lit/directives/live.js",
+            "bytes": 0
+          },
+          {
+            "source": "node_modules/lit/directives/repeat.js",
+            "bytes": 0
+          },
+          {
+            "source": "node_modules/lit/directives/style-map.js",
+            "bytes": 0
+          }
+        ]
+      }
+    },
+    "total": {
+      "raw": 139964,
+      "gzip": 39494,
+      "requests": 1
+    }
+  },
+  "modularExperiment": {
+    "supportedInstallation": false,
+    "files": {
+      "dist/bundle-analysis/navet-cards.js": {
+        "raw": 89192,
+        "gzip": 23132,
+        "sha256": "85cfa23dbd44c4c1b2ab710677ab8c0a48c92e9f1795e491a0d49d0989ed702d",
+        "contributions": [
+          {
+            "source": "src/styles.ts",
+            "bytes": 39091
+          },
+          {
+            "source": "src/card.ts",
+            "bytes": 32972
+          },
+          {
+            "source": "src/custom-content.ts",
+            "bytes": 5484
+          },
+          {
+            "source": "src/climate-orb.ts",
+            "bytes": 4197
+          },
+          {
+            "source": "src/icons.ts",
+            "bytes": 2827
+          },
+          {
+            "source": "src/providers/card-data.ts",
+            "bytes": 1410
+          },
+          {
+            "source": "node_modules/lit-html/directives/repeat.js",
+            "bytes": 1179
+          },
+          {
+            "source": "node_modules/lit-html/directives/style-map.js",
+            "bytes": 827
+          },
+          {
+            "source": "src/index.ts",
+            "bytes": 576
+          },
+          {
+            "source": "node_modules/lit/directives/repeat.js",
+            "bytes": 0
+          },
+          {
+            "source": "node_modules/lit/directives/style-map.js",
+            "bytes": 0
+          }
+        ]
+      },
+      "dist/bundle-analysis/chunks/editor-M6E76COJ.js": {
+        "raw": 11703,
+        "gzip": 3668,
+        "sha256": "e154983bf54d38a269616af86703dabb2829b5b8c87e3e4166170a789536c73e",
+        "contributions": [
+          {
+            "source": "src/editor.ts",
+            "bytes": 11472
+          }
+        ]
+      },
+      "dist/bundle-analysis/chunks/chunk-WZBO7BIR.js": {
+        "raw": 39989,
+        "gzip": 14233,
+        "sha256": "1a503fedf590091d746642916c9a96704c18ea847d4be193b38591b6d688cec2",
+        "contributions": [
+          {
+            "source": "src/providers/home-assistant.ts",
+            "bytes": 9591
+          },
+          {
+            "source": "node_modules/lit-html/lit-html.js",
+            "bytes": 7081
+          },
+          {
+            "source": "src/config.ts",
+            "bytes": 6801
+          },
+          {
+            "source": "src/i18n.ts",
+            "bytes": 6106
+          },
+          {
+            "source": "node_modules/@lit/reactive-element/reactive-element.js",
+            "bytes": 5886
+          },
+          {
+            "source": "node_modules/@lit/reactive-element/css-tag.js",
+            "bytes": 1321
+          },
+          {
+            "source": "node_modules/lit-element/lit-element.js",
+            "bytes": 742
+          },
+          {
+            "source": "node_modules/lit-html/directive-helpers.js",
+            "bytes": 578
+          },
+          {
+            "source": "node_modules/lit-html/directives/live.js",
+            "bytes": 565
+          },
+          {
+            "source": "node_modules/lit-html/directive.js",
+            "bytes": 300
+          },
+          {
+            "source": "src/core.ts",
+            "bytes": 28
+          },
+          {
+            "source": "node_modules/lit/index.js",
+            "bytes": 0
+          },
+          {
+            "source": "node_modules/lit-html/is-server.js",
+            "bytes": 0
+          },
+          {
+            "source": "node_modules/lit/directives/live.js",
+            "bytes": 0
+          }
+        ]
+      }
+    },
+    "scenarios": {
+      "view": {
+        "paths": [
+          "dist/bundle-analysis/chunks/chunk-WZBO7BIR.js",
+          "dist/bundle-analysis/navet-cards.js"
+        ],
+        "raw": 129181,
+        "gzip": 37365,
+        "requests": 2
+      },
+      "openRoom": {
+        "paths": [
+          "dist/bundle-analysis/chunks/chunk-WZBO7BIR.js",
+          "dist/bundle-analysis/navet-cards.js"
+        ],
+        "raw": 129181,
+        "gzip": 37365,
+        "requests": 2
+      },
+      "firstEdit": {
+        "paths": [
+          "dist/bundle-analysis/chunks/chunk-WZBO7BIR.js",
+          "dist/bundle-analysis/chunks/editor-M6E76COJ.js",
+          "dist/bundle-analysis/navet-cards.js"
+        ],
+        "raw": 140884,
+        "gzip": 41033,
+        "requests": 3
+      },
+      "editorIncremental": {
+        "paths": [
+          "dist/bundle-analysis/chunks/editor-M6E76COJ.js"
+        ],
+        "raw": 11703,
+        "gzip": 3668,
+        "requests": 1
+      }
+    },
+    "installed": {
+      "raw": 140884,
+      "gzip": 41033,
+      "requests": 3
+    }
+  },
+  "type": "internal",
+  "summary": "Measure standalone and modular bundle closures and enforce explicit growth budgets."
+}

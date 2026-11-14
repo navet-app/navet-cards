@@ -12,6 +12,21 @@ import type { CardKind } from './core';
 import type { Hass } from './providers/home-assistant';
 import { roomEntityIds } from './providers/home-assistant';
 import { translate } from './i18n';
+import './editor/ordered-entities';
+import './editor/action-field';
+import './editor/condition-field';
+import './editor/room-editor';
+import './editor/sub-controls';
+import './editor/chips';
+import './editor/calendar';
+import './editor/recipes';
+import './editor/templates';
+import './editor/interaction-fields';
+import './editor/child-cards';
+import { resolveRecipes } from './config/recipes';
+import { resolveRoomMemberIds } from './rooms/planner';
+
+type ActionKey = 'tap_action' | 'hold_action' | 'double_tap_action' | 'icon_tap_action' | 'icon_hold_action' | 'icon_double_tap_action';
 
 export class NavetCardEditor extends LitElement {
   private currentHass?: Hass;
@@ -20,10 +35,12 @@ export class NavetCardEditor extends LitElement {
   set hass(value: Hass | undefined) {
     const old = this.currentHass;
     this.currentHass = value;
+    const children=this.renderRoot?.querySelector<HTMLElement & {hass?:Hass}>('navet-child-cards-editor');
+    if(children)children.hass=value;
     if (!old || old.entities !== value?.entities || old.areas !== value?.areas || old.devices !== value?.devices || old.language !== value?.language || old.locale !== value?.locale || old.themes !== value?.themes) {
       this.entityOptions = Object.keys(value?.states ?? {});
       this.requestUpdate();
-    }
+    } else if (this.kind === 'room' && this.config && value && resolveRoomMemberIds(this.config,{areaEntityIds:area=>roomEntityIds(value,area)}).some(id=>old.states[id] !== value.states[id])) this.requestUpdate();
   }
   private config?: CardConfig;
   private error = '';
@@ -95,49 +112,63 @@ export class NavetCardEditor extends LitElement {
       this.changeConfig(key, type === 'number' && value !== '' ? Number(value) : value, parent);
     }} /></label>`;
   }
-  private action(key: 'tap_action' | 'hold_action' | 'double_tap_action') {
-    const a = this.config?.[key];
-    const actions: ActionConfig['action'][] = [
-      'none',
-      'more-info',
-      'navigate',
-      'perform-action',
-      ...(['light', 'switch', 'fan'].includes(this.kind) ? ['toggle' as const] : []),
-    ];
-    if (customElements.get('ha-form')) return html`<details><summary>${key.replaceAll('_',' ')}</summary><ha-form .hass=${this.hass} .data=${{[key]:a}} .schema=${[{name:key,selector:{ui_action:{actions:['none','more-info','navigate','perform-action',...(['light','switch','fan'].includes(this.kind)?['toggle']:[])]}}}]} .computeLabel=${()=> 'Action'} @value-changed=${(e:CustomEvent)=>{e.stopPropagation();this.changeConfig(key,e.detail.value[key]);}}></ha-form></details>`;
-    return html`<details><summary>${key.replaceAll('_', ' ')}</summary><div class="fields"><label>Action<select .value=${a?.action ?? ''} @change=${(
-      e: Event,
-    ) => {
-      const value = (e.target as HTMLSelectElement).value;
-      if (!value) this.changeConfig(key, undefined);
-      else this.changeConfig('action', value, key);
-    }}><option value="">Default</option>${actions.map((action) => html`<option value=${action} .selected=${live(action === a?.action)}>${action}</option>`)}</select></label>
-    ${a?.action === 'navigate' ? this.field('navigation_path', a.navigation_path, key) : nothing}
-    ${a?.action === 'perform-action' ? html`${this.field('perform_action', a.perform_action, key)}<p>Use YAML for action data, targets, and confirmation text. Those fields are preserved when editing here.</p>` : nothing}
-    <label class="check"><input type="checkbox" .checked=${!!a?.confirmation} @change=${(e: Event) => this.changeConfig('confirmation', (e.target as HTMLInputElement).checked || undefined, key)} />Confirm before running</label>
+  private action(key: ActionKey) {
+    const value = this.config?.[key];
+    return html`<details><summary>${key.replaceAll('_',' ')}</summary><div class="fields">
+      ${!value ? html`<p>Uses the card's default action.</p>` : nothing}
+      <navet-action-field .hass=${this.hass} .value=${value ?? {action:'none'}} .allowToggle=${['light','switch','fan','humidifier'].includes(this.kind)}
+        @value-changed=${(event:CustomEvent)=>{event.stopPropagation();this.changeConfig(key,event.detail.value);}}></navet-action-field>
+      <button type="button" @click=${()=>this.changeConfig(key,undefined)}>Reset to default</button>
+    </div></details>`;
+  }
+  private links() {
+    return html`<div>${(this.config?.links ?? []).map((link,i)=>html`<div class="item"><label>Link ${i+1} name<input .value=${link.name} @change=${(e:Event)=>this.listChange('links',i,'name',(e.target as HTMLInputElement).value)}></label><label>Link ${i+1} path or room hash<input .value=${link.path} @change=${(e:Event)=>this.listChange('links',i,'path',(e.target as HTMLInputElement).value)}></label><button type="button" @click=${()=>this.removeItem('links',i)}>Remove link ${i+1}</button></div>`)}<button type="button" ?disabled=${(this.config?.links?.length ?? 0)>=20} @click=${()=>this.changeConfig('links',[...(this.config?.links ?? []),{name:'Home',path:'/lovelace/0'}])}>Add link</button></div>`;
+  }
+  private gallery() {
+    const images = this.config?.images ?? [];
+    const move = (index:number,delta:number) => { const next=[...images]; [next[index],next[index+delta]]=[next[index+delta],next[index]];this.changeConfig('images',next); };
+    return html`<details><summary>Photo gallery</summary><div class="fields">${images.map((url,index)=>html`<div class="item"><label>Photo ${index+1} URL<input .value=${url} @change=${(event:Event)=>{const next=[...images];next[index]=(event.target as HTMLInputElement).value;this.changeConfig('images',next);}}></label><div class="pair"><button type="button" ?disabled=${index===0} @click=${()=>move(index,-1)}>Move photo ${index+1} up</button><button type="button" ?disabled=${index===images.length-1} @click=${()=>move(index,1)}>Move photo ${index+1} down</button></div><button type="button" @click=${()=>this.changeConfig('images',images.length===1?undefined:images.filter((_,i)=>i!==index))}>Remove photo ${index+1}</button></div>`)}<button type="button" ?disabled=${images.length>=24} @click=${()=>this.changeConfig('images',[...images,this.config?.image ?? '/local/photo.jpg'])}>Add photo</button><p>A gallery takes precedence over the single image. Removing every gallery photo restores the single image or selected image entity.</p></div></details>`;
+  }
+  private popupFields() {
+    const popup = this.config?.popup;
+    return html`<details><summary>Popup behavior</summary><div class="fields">
+      ${this.field('panel_id',this.config?.panel_id)}${this.field('scope',popup?.scope,'popup')}
+      <label>Popup size<select .value=${popup?.size ?? 'default'} @change=${(event:Event)=>this.changeConfig('size',(event.target as HTMLSelectElement).value,'popup')}>${['default','wide','fullscreen'].map(value=>html`<option value=${value} .selected=${live(value === (popup?.size ?? 'default'))}>${value}</option>`)}</select></label>
+      ${this.field('timeout',popup?.timeout,'popup','number')}<p>Timeout is measured in seconds; zero disables automatic closing.</p>
+      <label class="check"><input type="checkbox" .checked=${popup?.swipe === true} @change=${(event:Event)=>this.changeConfig('swipe',(event.target as HTMLInputElement).checked,'popup')}>Swipe down on the popup header to close</label>
+      <navet-condition-field label="Open popup when" .value=${popup?.trigger} .hass=${this.hass} @value-changed=${(event:CustomEvent)=>{event.stopPropagation();this.changeConfig('trigger',event.detail.value,'popup');}}></navet-condition-field>
+      <p>A dismissed trigger must become false before it can open the popup again. Scoped links use #scope--panel.</p>
     </div></details>`;
   }
   protected render() {
     const c = this.config;
     if (!c) return nothing;
+    let inherited:Record<string,unknown>={};try{if(c.use?.length)inherited=resolveRecipes(c);}catch{/* Local recipe editor owns invalid drafts. */}
     return html`<form @submit=${(e: Event) => e.preventDefault()}>
-      ${MULTI_KINDS.includes(this.kind) ? html`<label>${this.t('entities')}<textarea rows="4" .value=${c.entities?.join('\n') ?? ''} @change=${(e:Event)=>this.changeConfig('entities',(e.target as HTMLTextAreaElement).value.trim().split(/\s+/).filter(Boolean))}></textarea></label><p>${this.t('entityListHelp')}</p>` : CONTENT_KINDS.includes(this.kind) ? html`${this.picker('entity',c.entity,{entity:{filter:{domain:this.entityOptions.filter(id=>domainAllowed(this.kind,id)).map(id=>id.split('.')[0]).filter((v,i,a)=>a.indexOf(v)===i)}}},value=>this.changeConfig('entity',value))}${this.kind === 'note' ? html`<label>${this.t('content')}<textarea rows="4" .value=${c.content ?? ''} @change=${(e:Event)=>this.changeConfig('content',(e.target as HTMLTextAreaElement).value)}></textarea></label><p>${this.t('noteHelp')}</p>` : this.kind === 'photo' ? html`${this.field('image',c.image)}${this.field('alt',c.alt)}` : nothing}` : this.kind === 'navigation' ? html`<div>${(c.links ?? []).map((link,i)=>html`<div class="item"><label>Name<input .value=${link.name} @change=${(e:Event)=>this.listChange('links',i,'name',(e.target as HTMLInputElement).value)}></label><label>Path or room hash<input .value=${link.path} @change=${(e:Event)=>this.listChange('links',i,'path',(e.target as HTMLInputElement).value)}></label><button type="button" @click=${()=>this.removeItem('links',i)}>Remove link</button></div>`)}<button type="button" ?disabled=${(c.links?.length ?? 0)>=20} @click=${()=>this.changeConfig('links',[...(c.links ?? []),{name:'Home',path:'/lovelace/0'}])}>Add link</button></div>` : this.kind === 'room' ? html`
-        ${this.picker('area',c.area,{area:{}},value=>this.changeConfig('area',value))}
-        ${customElements.get('ha-form') ? html`<ha-form .hass=${this.hass} .data=${{entities:c.entities}} .schema=${[{name:'entities',selector:{entity:{multiple:true}}}]} .computeLabel=${()=> 'Selected entities'} @value-changed=${(e:CustomEvent)=>{e.stopPropagation();this.changeConfig('entities',e.detail.value.entities?.length?e.detail.value.entities:undefined);}}></ha-form>` : html`<label>Entities (one per line)<textarea style="min-height:90px" .value=${c.entities?.join('\n') ?? ''} @change=${(e: Event) => this.changeConfig('entities', (e.target as HTMLTextAreaElement).value.trim() ? (e.target as HTMLTextAreaElement).value.trim().split(/\s+/) : undefined)}></textarea></label>`}
-        ${this.field('panel_id',c.panel_id)}<p>${this.hass ? roomEntityIds(this.hass,c.area,c.entities).length : 0} entities in this room</p>` : this.picker('entity',c.entity,{entity:{filter:{domain:this.entityOptions.filter(id=>domainAllowed(this.kind,id)).map(id=>id.split('.')[0]).filter((v,i,a)=>a.indexOf(v)===i)}}},value=>this.changeConfig('entity',value))}
-      <div class="pair">${this.field('name', c.name)}${this.field('icon', c.icon)}</div>
+      ${c.use?.length ? html`<p>Using ${c.use.join(', ')}. ${inherited.entity ? html`Inherited entity: ${String(inherited.entity)}.` : nothing} Fields edited here override shared definitions.</p>` : nothing}
+      ${this.kind === 'calendar' ? html`<navet-calendar-editor .config=${c} .hass=${this.hass} @calendar-config-changed=${(event:CustomEvent<{config:CardConfig}>)=>{event.stopPropagation();this.commit(event.detail.config);}}></navet-calendar-editor>` : this.kind === 'composition' ? nothing : this.kind === 'chips' ? html`<navet-chips-editor .config=${c} .hass=${this.hass} @chips-config-changed=${(event:CustomEvent<{config:CardConfig}>)=>{event.stopPropagation();this.commit(event.detail.config);}}></navet-chips-editor>` : this.kind === 'sub-controls' ? nothing : MULTI_KINDS.includes(this.kind) ? html`<navet-ordered-entities .value=${c.entities ?? []} .hass=${this.hass} .domains=${this.kind === 'media-stack' ? ['media_player'] : this.kind === 'energy-now' ? ['sensor'] : ['sensor','binary_sensor']} label="Selected entities" @value-changed=${(e:CustomEvent)=>{e.stopPropagation();this.changeConfig('entities',e.detail.value);}}></navet-ordered-entities><p>Choose readings in display order. Energy Now uses power first, daily energy second.</p>` : CONTENT_KINDS.includes(this.kind) ? html`${this.picker('entity',c.entity,{entity:{filter:{domain:this.entityOptions.filter(id=>domainAllowed(this.kind,id)).map(id=>id.split('.')[0]).filter((v,i,a)=>a.indexOf(v)===i)}}},value=>this.changeConfig('entity',value))}${this.kind === 'note' ? html`<label>${this.t('content')}<textarea rows="4" .value=${c.content ?? ''} @change=${(e:Event)=>this.changeConfig('content',(e.target as HTMLTextAreaElement).value)}></textarea></label><p>${this.t('noteHelp')}</p>` : this.kind === 'photo' ? html`${this.field('image',c.image)}${this.field('alt',c.alt)}` : nothing}` : this.kind === 'navigation' ? this.links() : this.kind === 'room' ? html`<navet-room-editor .config=${c} .hass=${this.hass} @room-config-changed=${(e:CustomEvent)=>{e.stopPropagation();this.commit(e.detail.config);}}></navet-room-editor>` : this.picker('entity',c.entity,{entity:{filter:{domain:this.entityOptions.filter(id=>domainAllowed(this.kind,id)).map(id=>id.split('.')[0]).filter((v,i,a)=>a.indexOf(v)===i)}}},value=>this.changeConfig('entity',value))}
+      ${this.kind === 'room' ? html`<details><summary>Room navigation links</summary>${this.links()}</details>${this.popupFields()}` : nothing}
+      ${['room','navigation'].includes(this.kind) ? html`<details><summary>Navigation placement</summary><div class="fields"><label>Navigation position<select .value=${c.navigation_position ?? 'inline'} @change=${(e:Event)=>this.changeConfig('navigation_position',(e.target as HTMLSelectElement).value)}>${['inline','sticky','fixed'].map(value=>html`<option value=${value} .selected=${live(value === (c.navigation_position ?? 'inline'))}>${value}</option>`)}</select></label>${this.field('navigation_offset',c.navigation_offset,undefined,'number')}</div></details>` : nothing}
+      ${this.kind === 'photo' ? this.gallery() : nothing}
+      <div class="pair">${this.field('name', c.name)}${customElements.get('ha-form') ? html`<ha-form .hass=${this.hass} .data=${{icon:c.icon}} .schema=${[{name:'icon',selector:{icon:{}}}]} .computeLabel=${()=>this.t('icon')} @value-changed=${(e:CustomEvent)=>{e.stopPropagation();this.changeConfig('icon',e.detail.value.icon);}}></ha-form>` : this.field('icon', c.icon)}</div>
       <label>${this.t('layout')}<select .value=${c.layout ?? 'compact'} @change=${(e: Event) => this.changeConfig('layout', (e.target as HTMLSelectElement).value)}><option value="compact" .selected=${live(!c.layout || c.layout === 'compact')}>Compact</option><option value="comfortable" .selected=${live(c.layout === 'comfortable')}>Comfortable</option><option value="row" .selected=${live(c.layout === 'row')}>Row</option></select></label>
       ${this.kind === 'switch' ? html`<label>${this.t('size')}<select .value=${c.size ?? 'small'} @change=${(e: Event) => this.changeConfig('size', (e.target as HTMLSelectElement).value)}><option value="small" .selected=${live(c.size !== 'extra-small')}>${this.t('small')}</option><option value="extra-small" .selected=${live(c.size === 'extra-small')}>${this.t('extraSmall')}</option></select></label>` : nothing}
       <label class="check"><input type="checkbox" .checked=${c.show_state !== false} @change=${(e: Event) => this.changeConfig('show_state', (e.target as HTMLInputElement).checked)} />${this.t('show_state')}</label>
       ${this.kind === 'light' ? html`<label class="check"><input type="checkbox" .checked=${c.show_brightness !== false} @change=${(e: Event) => this.changeConfig('show_brightness', (e.target as HTMLInputElement).checked)} />${this.t('show_brightness')}</label>` : nothing}
       ${this.kind === 'sensor' ? html`<div class="pair">${this.field('attribute', c.attribute)}${this.field('unit', c.unit)}</div>` : nothing}
-      <details><summary>Appearance</summary><div class="fields"><div class="pair">${this.field('accent', c.appearance?.accent, 'appearance')}${this.field('radius', c.appearance?.radius, 'appearance', 'number')}</div>
+      <details><summary>Appearance</summary><div class="fields"><div class="pair">${this.field('accent', c.appearance?.accent ?? '#f97316', 'appearance', 'color')}${this.field('radius', c.appearance?.radius, 'appearance', 'number')}</div><button type="button" @click=${()=>this.changeConfig('accent',undefined,'appearance')}>Use theme accent</button>
       <label>Preset<select .value=${c.appearance?.preset ?? 'warm'} @change=${(e:Event)=>this.changeConfig('preset',(e.target as HTMLSelectElement).value,'appearance')}>${['warm','neutral','cool'].map(v=>html`<option value=${v} .selected=${live(v === (c.appearance?.preset ?? 'warm'))}>${v}</option>`)}</select></label>
       <label>Effects<select .value=${c.appearance?.effects ?? 'low'} @change=${(e:Event)=>this.changeConfig('effects',(e.target as HTMLSelectElement).value,'appearance')}><option value="low" .selected=${live(c.appearance?.effects !== 'high')}>Low</option><option value="high" .selected=${live(c.appearance?.effects === 'high')}>High</option></select></label>
       <label>${this.t('theme')}<select .value=${c.appearance?.theme ?? 'auto'} @change=${(e: Event) => this.changeConfig('theme', (e.target as HTMLSelectElement).value, 'appearance')}>${['auto', 'light', 'dark', 'black', 'glass'].map((theme) => html`<option value=${theme} .selected=${live(theme === (c.appearance?.theme ?? 'auto'))}>${theme}</option>`)}</select></label></div></details>
-      <details><summary>Sub-controls</summary><div class="fields">${(c.sub_controls ?? []).map((sub,i)=>html`<div class="item">${this.picker('subEntity',sub.entity,{entity:{}},value=>this.listChange('sub_controls',i,'entity',value))}<label>Name<input .value=${sub.name ?? ''} @change=${(e:Event)=>this.listChange('sub_controls',i,'name',(e.target as HTMLInputElement).value)}></label><label>Control<select .value=${sub.control ?? 'state'} @change=${(e:Event)=>this.listChange('sub_controls',i,'control',(e.target as HTMLSelectElement).value)}>${['state','toggle','slider','select'].map(type=>html`<option value=${type} .selected=${live(type === (sub.control ?? 'state'))}>${type}</option>`)}</select></label><button type="button" @click=${()=>this.removeItem('sub_controls',i)}>Remove sub-control</button></div>`)}<button type="button" ?disabled=${(c.sub_controls?.length ?? 0)>=8} @click=${()=>this.changeConfig('sub_controls',[...(c.sub_controls ?? []),{entity:this.entityOptions[0] ?? 'sensor.example',control:'state'}])}>Add sub-control</button><p>Conditional visibility and custom sub-control actions can be configured in YAML and are preserved here.</p></div></details>
-      ${this.action('tap_action')}${this.action('hold_action')}${this.action('double_tap_action')}
+      <details><summary>Sub-controls</summary><div class="fields"><navet-sub-controls-editor .config=${c} .hass=${this.hass} @sub-controls-config-changed=${(event:CustomEvent<{config:CardConfig}>)=>{event.stopPropagation();this.commit(event.detail.config);}}></navet-sub-controls-editor></div></details>
+      <details><summary>Reusable configurations</summary><div class="fields"><navet-recipes-editor .config=${c} .hass=${this.hass} @recipes-config-changed=${(event:CustomEvent<{config:CardConfig}>)=>{event.stopPropagation();this.commit(event.detail.config);}}></navet-recipes-editor></div></details>
+      <details><summary>HA display templates</summary><div class="fields"><navet-templates-editor .config=${c} .hass=${this.hass} @templates-config-changed=${(event:CustomEvent<{config:CardConfig}>)=>{event.stopPropagation();this.commit(event.detail.config);}}></navet-templates-editor></div></details>
+      <navet-interaction-fields .allowPress=${!['calendar','chips','sub-controls','composition'].includes(this.kind)} .config=${c} .hass=${this.hass} @interaction-config-changed=${(event:CustomEvent)=>{event.stopPropagation();this.commit(event.detail.value);}}></navet-interaction-fields>
+      <details><summary>Child cards</summary><div class="fields"><navet-child-cards-editor .definitions=${c.definitions} .cards=${c.cards ?? []} .hass=${this.hass} @child-cards-changed=${(event:CustomEvent)=>{event.stopPropagation();this.changeConfig('cards',event.detail.cards);}}></navet-child-cards-editor><label>Child card layout<select .value=${c.cards_layout ?? 'vertical'} @change=${(event:Event)=>this.changeConfig('cards_layout',(event.target as HTMLSelectElement).value)}>${['vertical','horizontal','grid'].map(value=>html`<option value=${value} .selected=${live(value === (c.cards_layout ?? 'vertical'))}>${value}</option>`)}</select></label>${this.field('cards_columns',c.cards_columns,undefined,'number')}</div></details>
+      ${!['chips','sub-controls'].includes(this.kind) ? html`${this.action('tap_action')}${this.action('hold_action')}${this.action('double_tap_action')}<details><summary>Icon gestures</summary><div class="fields">${this.action('icon_tap_action')}${this.action('icon_hold_action')}${this.action('icon_double_tap_action')}</div></details>` : nothing}
       ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
     </form>`;
   }
 }
+
+if (!customElements.get('navet-card-editor')) customElements.define('navet-card-editor', NavetCardEditor);
