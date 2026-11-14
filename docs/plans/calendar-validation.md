@@ -12,7 +12,7 @@ All-day boundaries use `hass.config.time_zone`; offset-aware timed events retain
 
 Per-calendar queries reuse the existing host-scoped DataCoordinator for concurrent request deduplication, five-minute freshness/polling, retry, visibility suspension and late-result generation guards. Config, timezone, date window, transport identity and relevant calendar state/attribute revisions invalidate observations. Online reconnect invalidates active reads; hidden/disconnected cards retain no active refresh timer. No request occurs in preview. One calendar's permission or transport failure leaves other calendars available with independent status messages.
 
-The current implementation uses authenticated REST reads and refresh/revision invalidation rather than the newer real-time calendar WebSocket subscription. It does not create, edit or delete events, render HTML descriptions, expand recurrence locally, or open external event URLs automatically. Calendar entity attributes alone are not substituted for a missing event-list API.
+The agenda retrieves events through Home Assistant’s authenticated REST API. Refreshes use the configured time window and invalidate results when the card configuration changes.
 
 ## Checks
 

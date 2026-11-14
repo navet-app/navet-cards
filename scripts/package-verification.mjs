@@ -26,7 +26,7 @@ await copyArtifact(artifactRoot, output, artifactManifest);
 for (const [source, target] of [
   ['README.md', 'README.md'], ['LICENSE', 'LICENSE'], ['hacs.json', 'hacs.json'],
   ...['CONTRIBUTING.md', 'CODE_OF_CONDUCT.md', 'SECURITY.md'].map(name => [name, name]),
-  ...['human-verification', 'verification-status', 'release-checklist', 'implementation', 'room-setup', 'release-workflow'].map((name) => [`docs/${name}.md`, `docs/${name}.md`]),
+  ...['card-configuration', 'human-verification', 'verification-status', 'release-checklist', 'implementation', 'room-setup', 'release-workflow'].map((name) => [`docs/${name}.md`, `docs/${name}.md`]),
 ]) await copyFile(source, `${output}/${target}`);
 // Keep the implementation plan's evidence and progress links usable in dirty local candidates.
 await cp('docs/plans', `${output}/docs/plans`, { recursive: true });

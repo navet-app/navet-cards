@@ -12,7 +12,7 @@ Protect `main` with required pull requests and the Cards validation checks. Conf
 
 ## Development builds
 
-Runtime changes merged into `main` automatically run **Publish Dev**. Changes limited to documentation or automation do not publish a new build. Maintainers can dispatch **Publish Dev** from `main` to test release tooling or recover from a failed build with a new Dev tag.
+Runtime changes merged into `main` automatically run **Publish Dev**. Maintainers can dispatch **Publish Dev** from `main` to test release tooling or recover from a failed build with a new Dev tag.
 
 The workflow creates an annotated `navet-cards-dev-VERSION-dev.TIMESTAMP` tag, runs type, contract, release and browser checks, and packages the resource with its Dev version. It downloads the uploaded resource and verifies its checksum before publishing the prerelease. Automated simulated-browser checks are recorded separately from the live [release checklist](release-checklist.md).
 
@@ -20,16 +20,18 @@ The workflow creates an annotated `navet-cards-dev-VERSION-dev.TIMESTAMP` tag, r
 
 1. Open **Actions → Promote Navet Cards Release → Run workflow**, selecting `main`.
 2. Choose `beta`, `rc`, or `stable`. Leave **preview_only** enabled to inspect the selected tags. Blank overrides select the latest eligible published source and next unused target version.
-3. Install the selected source resource and complete the relevant [release checklist](release-checklist.md). Record tested Home Assistant, browser and companion-app versions and unresolved issues in the release evidence provided by the maintainer.
-4. Run the workflow with the selected tags and **preview_only** disabled. For stable, enable **installation_tested** after installing and testing the selected beta/RC.
+3. For beta or RC, install the selected source resource and complete the applicable [release checklist](release-checklist.md) checks. Run the workflow with **preview_only** disabled. Copy both tags from the preview to reproduce its selection.
+4. After **Publish Release** succeeds, install the exact published beta or RC and record the tested Home Assistant, browser and companion-app versions and any unresolved issues.
+5. Preview stable promotion with **source_tag** pinned to the installed candidate. After acceptance, run again with the selected tags, **preview_only** disabled and **installation_tested** enabled.
+6. After stable publication succeeds, use the [distribution checklist](release-checklist.md#distribution-validation) to verify a clean Marketplace add and resource registration with the regular release.
 
-Beta promotes Dev. RC promotes Dev, beta or an earlier RC. Stable promotes beta/RC with the same base version. Source eligibility requires an annotated main-backed tag, a published resource matching its evidence digest and a successful publication workflow. A release or tag existing alone does not establish success.
+Beta promotes Dev. RC promotes Dev, beta or an earlier RC. Stable promotes beta/RC with the same base version. Source eligibility requires an annotated main-backed tag, a published resource matching its evidence digest and a successful publication workflow.
 
 Promotion creates the target annotated tag with `Promoted-From` provenance and dispatches **Publish Release**. Publication rebuilds the exact source with the target version, runs checks, creates a draft, uploads the distribution, downloads and verifies the actual resource, then publishes. Dev, beta and RC remain prereleases; stable updates GitHub's latest release. Installation confirmation is required for stable publication, including recovery.
 
 ## Recover publication
 
-Run **Publish Release** from current `main` with the existing **release_tag** and matching **source_tag**. For a Dev tag, leave **source_tag** empty. Recovery validates provenance and source evidence again. Existing distribution assets must match byte for byte and are never overwritten. Completion metadata can be refreshed to identify the successful recovery run. Conflicting assets require a new version.
+Run **Publish Release** from current `main` with the existing **release_tag** and matching **source_tag**. For a Dev tag, leave **source_tag** empty. Recovery validates provenance and source evidence again. Recovery reuses byte-identical distribution assets. Completion metadata can be refreshed to identify the successful recovery run. Conflicting assets require a new version.
 
 ## Release notes
 
@@ -55,4 +57,4 @@ npm run dev
 npm run screenshots:readme
 ```
 
-With installed Chrome, set `NAVET_BROWSER_CHANNEL=chrome`. Set `NAVET_PREVIEW_PORT` for a different running preview port. Inspect all three images under `docs/images/` before submitting them. Screenshots show simulated devices and do not establish live Home Assistant acceptance.
+With installed Chrome, set `NAVET_BROWSER_CHANNEL=chrome`. Set `NAVET_PREVIEW_PORT` for a different running preview port. Inspect all three images under `docs/images/` before submitting them.

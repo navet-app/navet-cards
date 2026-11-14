@@ -1,5 +1,7 @@
 # Competitive implementation plan
 
+Planning record from October 2026. See the [architecture guide](../implementation.md) for the implemented system.
+
 Status: **implementation in progress**, started 20 October 2026. See the [implementation progress and remaining acceptance](implementation-progress.md) for delivered slices, bundle measurements and next work. This is the execution plan for the [competitive audit](../audits/2026-10-20-navet-cards-competitive-audit.md), using the [versioned competitor evidence](../audits/2026-10-20-competitor-evidence.md).
 
 ## 1. Objective and scope
@@ -405,8 +407,6 @@ Start with **wave 0**, then complete **M0 and M1** as the first integrated produ
 4. R01 + E01 + A01: room plan, native authoring fields/conditions and shared execution.
 5. R02 + R03 + E02: build the room visually and operate the same normalized plan.
 6. R04 + E03 + Q01/Q02/Q03 slices: duplicate/remap recipes, integrate, inspect and validate M1.
-
-Then continue ready packages in waves 4–10. Do not stop at M1 solely because it is a useful early result. Do not spawn agents or start implementation merely from this document's creation; the requested next step is dispatching the agreed work packages.
 
 ## 13. Primary references for implementers
 

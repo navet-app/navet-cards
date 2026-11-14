@@ -8,7 +8,7 @@ Include the affected card and Home Assistant versions, reproduction steps, likel
 
 ## Supported versions
 
-Navet Cards is in beta. Security fixes target the current development version and latest published beta when available. Older beta builds do not have a separate maintenance guarantee.
+Navet Cards is in beta. Security fixes target the current development version and latest published beta when available.
 
 ## Scope
 
